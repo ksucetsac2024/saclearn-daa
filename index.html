@@ -186,14 +186,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .rail-top {
   display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 10px;
 }
-.rail-badges { display: flex; align-items: center; gap: 6px; }
-.rail-badge-dept {
-  background: var(--accent); color: #ffffff; font-family: var(--font-mono); font-size: 11px; font-weight: 700;
-  padding: 2px 7px; border-radius: 5px; letter-spacing: 0.04em;
+.rail-brand-btn {
+  font-family: var(--font-display); font-size: 20px; font-weight: 800; letter-spacing: -0.02em;
+  color: var(--ink); text-decoration: none; display: inline-flex; align-items: center;
+  padding: 3px 8px; border-radius: 6px; line-height: 1.1; transition: all 0.15s;
 }
-.rail-badge-code {
-  background: var(--surface-2); color: var(--ink-2); font-family: var(--font-mono); font-size: 11px; font-weight: 700;
-  padding: 2px 7px; border-radius: 5px; border: 1px solid var(--line);
+.rail-brand-btn:hover {
+  color: var(--accent); background: var(--surface-2);
 }
 .rail-actions {
   display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px;
@@ -742,10 +741,7 @@ details.reveal[open] summary { margin-bottom: 8px; }
 <button class="rail-edge-btn" id="rail-edge-btn" title="Toggle sidebar (Ctrl+B)" aria-label="Toggle sidebar"><span class="rail-edge-icon">◀</span></button>
 <nav class="rail" aria-label="Topics">
   <div class="rail-top">
-    <div class="rail-badges">
-      <span class="rail-badge-dept">CSE</span>
-      <span class="rail-badge-code">PCCST502</span>
-    </div>
+    <a class="rail-brand-btn" href="#home" title="DAA Home">DAA</a>
   </div>
 
   <div class="rail-actions">
