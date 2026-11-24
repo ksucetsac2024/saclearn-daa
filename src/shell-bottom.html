@@ -1,0 +1,38 @@
+</div></main>
+<dialog id="search-dialog" class="cmd-dialog">
+  <div class="cmd-box">
+    <div class="cmd-input-wrap">
+      <span class="cmd-icon">🔍</span>
+      <input type="text" id="cmd-search-input" placeholder="Type a topic, module, or algorithm (e.g. Master theorem, Dijkstra, AVL)..." autocomplete="off">
+      <kbd id="cmd-esc-btn">ESC</kbd>
+    </div>
+    <div class="cmd-results" id="cmd-results-list"></div>
+  </div>
+</dialog>
+
+<dialog id="sync-dialog" class="sync-modal">
+  <div class="sync-modal-box">
+    <div class="sync-modal-head">
+      <h3>Sync &amp; Backup Progress</h3>
+      <button class="btn" id="close-sync-btn" aria-label="Close dialog">✕</button>
+    </div>
+    <div class="sync-modal-body">
+      <div class="sync-sec">
+        <label><b>1-Click Transfer Link</b><br><small>Open this link on your phone or another browser to restore your progress.</small></label>
+        <div class="sync-input-row">
+          <input type="text" id="sync-url-input" readonly>
+          <button class="btn pri" id="copy-sync-btn">Copy</button>
+        </div>
+      </div>
+      <div class="sync-sec">
+        <label><b>File Backup</b><br><small>Export a JSON snapshot or restore an existing backup file.</small></label>
+        <div class="sync-btn-row">
+          <button class="btn" id="export-file-btn">Download Backup</button>
+          <label class="btn file-btn">Restore Backup<input type="file" id="import-file-input" accept=".json" style="display:none"></label>
+        </div>
+      </div>
+      <div class="sync-status" id="sync-status"></div>
+    </div>
+  </div>
+</dialog>
+</div>

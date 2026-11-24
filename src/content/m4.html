@@ -1,0 +1,379 @@
+<!-- ======================= MODULE 4 ======================= -->
+<section class="topic" id="bnb" data-mod="4" data-title="Branch &amp; bound, TSP">
+<header>
+  <h1>Branch and bound, and the travelling salesman</h1>
+  <p class="lede">Like backtracking, branch and bound searches a state space tree. Each node also gets a lower bound on the cost of any solution below it, and the search always expands the most promising node next. Subtrees that cannot beat the best answer so far are cut off.</p>
+</header>
+
+<h2>Backtracking vs branch and bound</h2>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th></th><th>Backtracking</th><th>Branch and bound</th></tr>
+<tr><td>Search order</td><td>Depth first</td><td>Breadth first (FIFO), LIFO, or least cost first (LC)</td></tr>
+<tr><td>E-node</td><td>Expand one child, go deeper, come back later</td><td>Generate <b>all</b> children of the E-node at once, then pick the next E-node from the live list</td></tr>
+<tr><td>Kills a node when</td><td>It breaks a constraint</td><td>It breaks a constraint <b>or</b> its bound shows it cannot beat the best solution</td></tr>
+<tr><td>Typical use</td><td>Find all / any feasible solutions (N-Queens)</td><td>Optimisation problems (TSP, 0/1 knapsack)</td></tr>
+</table></div>
+
+<h2>LC search and the cost function</h2>
+<p>Every node X gets an estimate <b>ĉ(X)</b> of the cost of the best answer in its subtree. For minimisation, ĉ is a <b>lower bound</b>: no solution below X can cost less than ĉ(X). <b>Least-cost (LC) search</b> always picks the live node with the smallest ĉ as the next E-node.</p>
+<h3>Control abstraction (LC search)</h3>
+<pre class="code"><span class="k">Algorithm</span> LCSearch(t)          <span class="c">// t = root of the state space tree</span>
+{
+    <span class="k">if</span> t is an answer node <span class="k">then</span> { output t; <span class="k">return</span>; }
+    E := t;                              <span class="c">// E-node</span>
+    initialise the list of live nodes to be empty;
+    <span class="k">repeat</span>
+    {
+        <span class="k">for</span> each child x of E <span class="k">do</span>
+        {
+            <span class="k">if</span> x is an answer node <span class="k">then</span> { output path from x to t; <span class="k">return</span>; }
+            Add(x);                       <span class="c">// x becomes a live node</span>
+            (x → parent) := E;            <span class="c">// to rebuild the path</span>
+        }
+        <span class="k">if</span> there are no more live nodes <span class="k">then</span> { write ("No answer node"); <span class="k">return</span>; }
+        E := Least();                     <span class="c">// remove the live node with smallest ĉ</span>
+    } <span class="k">until</span> (false);
+}</pre>
+<p>With a FIFO queue in place of Least() it becomes FIFO branch and bound; with a stack, LIFO branch and bound. For optimisation problems, a common refinement: stop when the node chosen by Least() is itself a complete solution, because every other live node has ĉ at least as large.</p>
+
+<h2>TSP with reduced cost matrices</h2>
+<p>Find the cheapest tour that starts at city 1, visits every city exactly once and returns to 1. The cost matrix A has A[i][j] = cost of going from i to j, and ∞ on the diagonal.</p>
+<h3>Step 1: reduce the matrix to get a lower bound</h3>
+<p>Every tour leaves each city exactly once, so it must pay at least the cheapest entry of each row. Subtract each row's minimum from that row. Every tour also enters each city once, so then subtract each column's minimum from that column. Let <b>r</b> = the total subtracted. Every tour costs at least r, so r is a lower bound, and the root gets <b>ĉ(root) = r</b>. A matrix is <b>reduced</b> when every row and column has a 0 (or is all ∞).</p>
+<div class="eg"><b>Worked root reduction</b>
+<div class="big-math" style="margin:8px 0">Original                         row min
+ ∞  12  10  19   8                   8
+12   ∞   3   7   2                   2
+10   3   ∞   6  20                   3
+19   7   6   ∞   4                   4
+ 8   2  20   4   ∞                   2      rows subtract 19
+
+After rows:                       Reduced (after columns):
+ ∞   4   2  11   0                 ∞   4   1   9   0
+10   ∞   1   5   0                 4   ∞   0   3   0
+ 7   0   ∞   3  17                 1   0   ∞   1  17
+15   3   2   ∞   0                 9   3   1   ∞   0
+ 6   0  18   2   ∞                 0   0  17   0   ∞
+col min: 6  0  1  2  0  → 9
+
+r = 19 + 9 = 28,   ĉ(root) = 28</div></div>
+
+<h3>Step 2: branching on an edge (i, j)</h3>
+<p>A child S of node R means "the tour goes from i to j next". Starting from R's reduced matrix A:</p>
+<ol>
+  <li>Set every entry of <b>row i</b> to ∞ (we have already left i).</li>
+  <li>Set every entry of <b>column j</b> to ∞ (we have already entered j).</li>
+  <li>Set <b>A[j][1] = ∞</b> (do not return to the start before the tour is complete).</li>
+  <li>Reduce the result again; call the amount subtracted r.</li>
+</ol>
+<div class="formula"><b>Cost of the child</b><div class="big-math" style="margin:6px 0;border:0;padding:0;background:none">ĉ(S) = ĉ(R) + A(i, j) + r</div><p>A(i, j) is the entry in the <i>parent's</i> reduced matrix: the extra cost of actually using that edge.</p></div>
+<div class="eg"><b>Child for edge 1 → 5 from the root above</b>
+<p>A(1,5) = 0. Blank row 1, column 5, and A[5][1]. Rows 2, 3, 5 already contain a 0; row 4 becomes (9, 3, 1, ∞, ∞) with minimum 1. After that, column 1 holds (4, 1, 8, ∞) with minimum 1. So r = 1 + 1 = 2, and ĉ = 28 + 0 + 2 = <b>30</b>.</p></div>
+<p>LC search then repeatedly expands the live node with the least ĉ. When the node it picks is a complete tour (a leaf), that tour is optimal: every other live node has a lower bound at least as high.</p>
+
+<div class="bench" id="w-tsp">
+  <div class="bench-top"><span class="tag">Try it</span><h3>LC branch and bound for TSP</h3></div>
+  <p class="bench-note">One row per line, <code>inf</code> on the diagonal. Each step either picks an E-node or computes one child: the left matrix is after blanking (with row and column minimums), the right one is reduced. In the tree the number in a node is its node number and the number under it is ĉ.</p>
+  <div class="inputs">
+    <label class="grow">Cost matrix<textarea id="ts-m">inf 12 10 19 8
+12 inf 3 7 2
+10 3 inf 6 20
+19 7 6 inf 4
+8 2 20 4 inf</textarea></label>
+    <button class="btn pri run">Run</button>
+  </div>
+  <div class="legend"><span><i class="lg-cur"></i>E-node</span><span><i class="lg-front"></i>live</span><span><i class="lg-done"></i>optimal tour</span><span><i class="lg-bad"></i>killed (bound too high)</span></div>
+  <div class="player"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>Why is the reduction total r a valid lower bound for every tour?</p>
+<div class="opts"><button>Because it is the cost of the greedy tour</button><button>Every tour uses exactly one entry in each row and each column, so it pays at least each row's and column's minimum</button><button>Because the matrix is symmetric</button><button>Because ĉ is always exact</button></div>
+<p class="why">Subtracting a constant from a whole row lowers every tour by exactly that constant, so the order of tours is unchanged and r is paid by all of them.</p></div>
+<div class="mcq" data-answer="3"><p>When branching on edge (3, 2), which entries are set to ∞ (start city 1)?</p>
+<div class="opts"><button>Row 2 and column 3</button><button>Only A[3][2]</button><button>Row 3, column 2 and A[1][2]</button><button>Row 3, column 2 and A[2][1]</button></div>
+<p class="why">Leave 3 (row 3), enter 2 (column 2), and block the early return 2 → 1.</p></div>
+</section>
+</section>
+
+<!-- ============ COMPLEXITY ============ -->
+<section class="topic" id="classes" data-mod="4" data-title="P, NP, NP-hard, NP-complete">
+<header>
+  <h1>Tractable and intractable problems: P, NP, NP-hard, NP-complete</h1>
+  <p class="lede">Some problems have fast algorithms; for others, nobody has found one in fifty years of trying. Complexity classes sort problems by how hard they are, and reductions let us compare the hardness of two problems.</p>
+</header>
+<h2>Tractable vs intractable</h2>
+<p>A problem is <b>tractable</b> if some algorithm solves it in <b>polynomial time</b>, O(nᵏ) for a constant k (sorting n log n, shortest paths, MST). It is <b>intractable</b> if no polynomial algorithm exists, or none is known, and the best algorithms are exponential (2ⁿ, n!). The line is drawn at polynomial because polynomials stay manageable as n grows and are closed under composition, while 2ⁿ doubles with every extra input item.</p>
+<div class="tbl-wrap"><table class="tbl num">
+<tr><th>n</th><th>n²</th><th>n³</th><th>2ⁿ</th><th>n!</th></tr>
+<tr><td>10</td><td>100</td><td>1,000</td><td>1,024</td><td>3.6 × 10⁶</td></tr>
+<tr><td>30</td><td>900</td><td>27,000</td><td>1.1 × 10⁹</td><td>2.7 × 10³²</td></tr>
+<tr><td>60</td><td>3,600</td><td>216,000</td><td>1.2 × 10¹⁸</td><td>8.3 × 10⁸¹</td></tr>
+</table></div>
+
+<h2>Decision vs optimisation problems</h2>
+<div class="cols">
+  <div class="card"><h4>Optimisation problem</h4><p>Asks for the best value. "What is the cheapest tour?" "What is the largest clique?"</p></div>
+  <div class="card"><h4>Decision problem</h4><p>Has a yes/no answer. "Is there a tour of cost ≤ k?" "Is there a clique of size ≥ k?"</p></div>
+</div>
+<p>Complexity classes are defined for decision problems. That loses nothing important: if the decision version is hard, the optimisation version is at least as hard (solving the optimisation answers the decision immediately). Conversely, a decision algorithm plus binary search on k usually finds the optimum.</p>
+
+<h2>The classes</h2>
+<div class="cols">
+  <div class="card"><h4>P</h4><p>Decision problems <b>solvable</b> in polynomial time by a deterministic algorithm. Examples: sorting, MST, shortest path, "is there a path from u to v?"</p></div>
+  <div class="card"><h4>NP</h4><p>Decision problems whose <b>yes-answers can be verified</b> in polynomial time, given a certificate (a proposed solution). Equivalently: solvable in polynomial time by a nondeterministic machine that "guesses" the certificate. NP means <b>nondeterministic polynomial</b>, not "not polynomial".</p></div>
+  <div class="card"><h4>NP-hard</h4><p>Problems at least as hard as <b>every</b> problem in NP: every NP problem reduces to it in polynomial time. An NP-hard problem need not be in NP, and need not even be a decision problem.</p></div>
+  <div class="card"><h4>NP-complete</h4><p>Problems that are <b>both in NP and NP-hard</b>: the hardest problems inside NP. Examples: SAT, 3-CNF-SAT, CLIQUE, VERTEX-COVER, decision TSP, Hamiltonian cycle, subset sum.</p></div>
+</div>
+<figure class="fig-scroll" data-static="venn"></figure>
+<div class="idea"><b>Certificates: how to show a problem is in NP</b><p>Describe the certificate and a polynomial-time check. Decision TSP ("tour of cost ≤ k?"): the certificate is the order of cities. Check it visits each city exactly once (O(n)), add up the n edge costs and compare with k (O(n)). That is polynomial, so decision TSP ∈ NP.</p>
+<p>Every problem in P is also in NP (the verifier can just solve the problem itself and ignore the certificate), so <b>P ⊆ NP</b>. Whether P = NP is the most famous open question in computer science. Almost everyone believes P ≠ NP.</p></div>
+<p><b>NP-hard but not NP-complete</b>: the <b>halting problem</b> ("does program M stop on input x?") is NP-hard (SAT reduces to it: build a program that tries every assignment and halts if one satisfies the formula), but it is undecidable, so it is certainly not in NP. Optimisation TSP ("find the cheapest tour") is NP-hard but is not a decision problem, so it is not in NP either.</p>
+
+<h2>Polynomial-time reductions</h2>
+<p>A <b>reduction</b> from problem A to problem B, written <b>A ≤ₚ B</b>, is a polynomial-time function f that turns any instance x of A into an instance f(x) of B such that <b>x is a yes-instance of A ⇔ f(x) is a yes-instance of B</b>.</p>
+<figure class="fig-scroll" data-static="reduction"></figure>
+<p>So if B is easy, A is easy too: transform, then solve B. Read the other way: <b>if A is hard, B must be at least as hard</b>. This is how hardness spreads from one problem to the next.</p>
+<div class="formula"><b>Recipe to prove a problem X is NP-complete</b>
+<p>1. Show <b>X ∈ NP</b>: give a certificate and a polynomial-time verifier.</p>
+<p>2. Pick a known NP-complete problem Y and show <b>Y ≤ₚ X</b>: build f, show it runs in polynomial time, and prove both directions of "x yes ⇔ f(x) yes".</p>
+<p>Because ≤ₚ is transitive, every NP problem then reduces to X. The first NP-complete problem, SAT, was proved directly (<b>Cook–Levin theorem</b>).</p></div>
+<div class="idea"><b>If any NP-complete problem is in P, then P = NP</b><p>Let X be NP-complete with a polynomial algorithm. Take any problem L in NP. Since X is NP-hard, L ≤ₚ X: transform L's input in polynomial time, then run X's polynomial algorithm. A polynomial of a polynomial is still a polynomial, so L ∈ P. That holds for every L in NP, so NP ⊆ P, and with P ⊆ NP, P = NP.</p></div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="2"><p>What does "NP" stand for?</p>
+<div class="opts"><button>Not polynomial</button><button>Non-practical</button><button>Nondeterministic polynomial time</button><button>Number of permutations</button></div>
+<p class="why">Many NP problems (all of P, for instance) are solvable in polynomial time.</p></div>
+<div class="mcq" data-answer="0"><p>You prove 3-CNF-SAT ≤ₚ X. What follows?</p>
+<div class="opts"><button>X is NP-hard</button><button>X is in P</button><button>X is in NP</button><button>3-CNF-SAT is easier than X, so X is NP-complete</button></div>
+<p class="why">Hardness travels along the reduction. To be NP-complete, X must also be shown to be in NP.</p></div>
+<div class="mcq" data-answer="3"><p>Which is in NP but believed to be outside P?</p>
+<div class="opts"><button>Sorting</button><button>Shortest path</button><button>The halting problem</button><button>Deciding whether a graph has a clique of size k</button></div>
+<p class="why">CLIQUE is NP-complete. Sorting and shortest path are in P; the halting problem is not in NP at all.</p></div>
+</section>
+</section>
+
+<!-- ============ NPC PROOFS ============ -->
+<section class="topic" id="npc" data-mod="4" data-title="NP-completeness: Clique &amp; Vertex Cover">
+<header>
+  <h1>NP-completeness proofs: Clique and Vertex Cover</h1>
+  <p class="lede">Two complete examples of the recipe: prove the problem is in NP, then reduce a known NP-complete problem to it.</p>
+</header>
+<h2>Definitions</h2>
+<div class="cols">
+  <div class="card"><h4>Clique</h4><p>A <b>clique</b> in an undirected graph is a set of vertices that are all pairwise adjacent (a complete subgraph). <b>CLIQUE</b> = {⟨G, k⟩ : G has a clique of size k}.</p></div>
+  <div class="card"><h4>Vertex cover</h4><p>A <b>vertex cover</b> is a set of vertices that touches every edge: each edge has at least one endpoint in the set. <b>VERTEX-COVER</b> = {⟨G, k⟩ : G has a vertex cover of size k}.</p></div>
+  <div class="card"><h4>3-CNF-SAT</h4><p>A Boolean formula that is an AND of clauses, each clause an OR of exactly 3 literals (a variable or its negation). Is there an assignment making it true? Known NP-complete.</p></div>
+</div>
+
+<h2>CLIQUE is NP-complete</h2>
+<h3>Part 1: CLIQUE ∈ NP</h3>
+<p>Certificate: the set V′ of k vertices. Verifier: check |V′| = k, then check every pair u, v ∈ V′ is an edge. That is k(k−1)/2 ≤ |V|² edge checks, polynomial. So CLIQUE ∈ NP.</p>
+<h3>Part 2: 3-CNF-SAT ≤ₚ CLIQUE</h3>
+<p>Given a formula φ = C₁ ∧ C₂ ∧ … ∧ Cₖ with k clauses, build a graph G:</p>
+<ol>
+  <li>For each clause C<sub>r</sub> = (l₁ ∨ l₂ ∨ l₃), create 3 vertices, one per literal.</li>
+  <li>Connect two vertices by an edge if <b>(a)</b> they come from <b>different clauses</b>, and <b>(b)</b> their literals are <b>not complements</b> of each other (not x and ¬x).</li>
+  <li>Ask for a clique of size <b>k</b> (the number of clauses).</li>
+</ol>
+<p>G has 3k vertices and at most 9k² edges, so it is built in polynomial time.</p>
+<div class="eg"><b>Proof of correctness (both directions)</b>
+<p><b>(⇒) φ satisfiable ⇒ G has a k-clique.</b> Take a satisfying assignment. Each clause has at least one true literal; pick one vertex for such a literal from every clause: k vertices. Any two of them are from different clauses, and both literals are true, so they cannot be x and ¬x. Hence every pair is joined by an edge: a k-clique.</p>
+<p><b>(⇐) G has a k-clique ⇒ φ satisfiable.</b> Vertices of the same clause are never adjacent, so a k-clique has exactly one vertex per clause. No two of its literals are complementary (they are all adjacent), so we can set every one of them true without conflict. Variables not mentioned can be anything. Each clause then has a true literal, so φ is satisfied.</p></div>
+
+<div class="bench" id="w-cnf">
+  <div class="bench-top"><span class="tag">Try it</span><h3>3-CNF → CLIQUE construction</h3></div>
+  <p class="bench-note">One clause per line, literals separated by spaces. Write negation as <code>~x2</code>, <code>!x2</code> or <code>¬x2</code>. The tool builds G, searches for a k-clique, and reads off the assignment.</p>
+  <div class="inputs">
+    <label class="grow">Clauses<textarea id="cn-f">~a b c
+a ~b ~c
+a b ~c</textarea></label>
+    <button class="btn pri run">Build</button>
+  </div>
+  <div class="chips">
+    <button class="chip" data-fill='{"cn-f":"a a a\n~a ~a ~a"}'>Unsatisfiable</button>
+  </div>
+  <div class="out"></div>
+</div>
+
+<h2>VERTEX-COVER is NP-complete</h2>
+<h3>The key fact: cliques and covers are complements</h3>
+<p>The <b>complement</b> graph Ḡ has the same vertices as G, and an edge exactly where G does <b>not</b> have one.</p>
+<div class="idea"><b>G has a clique of size k ⇔ Ḡ has a vertex cover of size |V| − k</b>
+<p><b>(⇒)</b> Let V′ be a clique in G. Take any edge (u, v) of Ḡ. Then (u, v) is not an edge of G, so u and v are not both in V′ (all pairs inside V′ are G-edges). So at least one of u, v is in V − V′: the set V − V′ covers every edge of Ḡ, and its size is |V| − k.</p>
+<p><b>(⇐)</b> Let V − V′ be a vertex cover of Ḡ. Take any u, v both in V′. If (u, v) were an edge of Ḡ, the cover V − V′ would have to contain u or v, but neither is in it. So (u, v) is not in Ḡ, i.e. it is an edge of G. Every pair in V′ is adjacent in G: V′ is a clique of size k.</p></div>
+<h3>The proof</h3>
+<ol>
+  <li><b>VERTEX-COVER ∈ NP.</b> Certificate: the set V′ of k vertices. Check |V′| = k, then for every edge (u, v) check u ∈ V′ or v ∈ V′: O(V + E). Polynomial.</li>
+  <li><b>CLIQUE ≤ₚ VERTEX-COVER.</b> Given ⟨G, k⟩, output ⟨Ḡ, |V| − k⟩. Building Ḡ takes O(V²). By the fact above, G has a k-clique exactly when Ḡ has a vertex cover of size |V| − k.</li>
+</ol>
+<p>CLIQUE is NP-complete, so VERTEX-COVER is NP-hard, and being in NP it is NP-complete.</p>
+
+<div class="bench" id="w-vc">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Clique in G ↔ vertex cover in Ḡ</h3></div>
+  <p class="bench-note">Enter an undirected graph (at most 12 vertices). The tool finds a maximum clique in G and shows the matching vertex cover in the complement.</p>
+  <div class="inputs">
+    <label class="grow">Edges of G<input id="vc-e" value="1 2, 1 3, 2 3, 2 4, 3 4, 4 5, 5 6, 3 5"></label>
+    <label>Extra isolated vertices<input id="vc-v" value=""></label>
+    <button class="btn pri run">Build</button>
+  </div>
+  <div class="out"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>A formula has 5 clauses. In the CLIQUE reduction, how many vertices does G have, and what clique size is asked for?</p>
+<div class="opts"><button>5 vertices, clique of size 3</button><button>15 vertices, clique of size 5</button><button>15 vertices, clique of size 3</button><button>8 vertices, clique of size 5</button></div>
+<p class="why">3 vertices per clause; k = number of clauses.</p></div>
+<div class="mcq" data-answer="2"><p>G has 10 vertices and its largest clique has 4 vertices. The smallest vertex cover of Ḡ has size</p>
+<div class="opts"><button>4</button><button>14</button><button>6</button><button>impossible to tell</button></div>
+<p class="why">|V| − k = 10 − 4.</p></div>
+<div class="mcq" data-answer="0"><p>Why are two vertices from the same clause never joined?</p>
+<div class="opts"><button>So that a k-clique must take exactly one literal from every clause</button><button>To keep the graph planar</button><button>Because they are complements</button><button>To make the reduction faster</button></div>
+<p class="why">Without this rule a clique could take two literals from one clause and skip another clause entirely.</p></div>
+</section>
+</section>
+
+<!-- ============ BIN PACKING ============ -->
+<section class="topic" id="binpack" data-mod="4" data-title="Approximation: bin packing">
+<header>
+  <h1>Approximation algorithms: bin packing</h1>
+  <p class="lede">For NP-hard optimisation problems we often give up on the exact optimum and accept a fast algorithm with a proven guarantee: "never more than twice the optimum", for example.</p>
+</header>
+<h2>Approximation ratio</h2>
+<p>An algorithm has <b>approximation ratio ρ(n)</b> if, for every input of size n, its answer C and the optimum C* satisfy</p>
+<div class="big-math">max( C / C*,  C* / C ) ≤ ρ(n)</div>
+<p>For minimisation that means C ≤ ρ·C*; for maximisation, C ≥ C*/ρ. A ρ-approximation algorithm always runs in polynomial time. ρ = 1 would mean exact.</p>
+
+<h2>The bin packing problem</h2>
+<p>Given n items with sizes s₁, …, sₙ, each 0 &lt; sᵢ ≤ 1, pack them into the fewest bins of capacity 1. It is NP-hard. One easy lower bound: the items' total size must fit, so <b>OPT ≥ ⌈Σ sᵢ⌉</b>.</p>
+<div class="cols">
+  <div class="card"><h4>Next Fit (NF)</h4><p>Keep only the current bin open. If the item fits, put it in; otherwise close the bin forever and open a new one. O(n).</p></div>
+  <div class="card"><h4>First Fit (FF)</h4><p>Put the item into the <b>first</b> (lowest-numbered) bin with enough room; open a new bin only if none has room. O(n²) simply, O(n log n) with a tree.</p></div>
+  <div class="card"><h4>Best Fit (BF)</h4><p>Put the item into the bin where it fits <b>most tightly</b> (least room left afterwards). Ties go to the lowest-numbered bin.</p></div>
+  <div class="card"><h4>First Fit Decreasing (FFD)</h4><p>Sort items largest first, then run First Fit. Best Fit Decreasing (BFD) is the same idea with Best Fit. Sorting puts big awkward items in early, leaving small ones to fill the gaps.</p></div>
+</div>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Algorithm</th><th>Guarantee</th></tr>
+<tr><td>Next Fit</td><td>NF ≤ 2·OPT (ratio 2)</td></tr>
+<tr><td>First Fit, Best Fit</td><td>≤ ⌊1.7·OPT⌋ (ratio 1.7)</td></tr>
+<tr><td>FFD, BFD</td><td>≤ (11/9)·OPT + 6/9 (about 1.22)</td></tr>
+</table></div>
+<div class="idea"><b>Why Next Fit never uses more than 2·OPT bins</b><p>Look at any two consecutive bins Bᵢ and Bᵢ₊₁ in NF's packing. NF opened Bᵢ₊₁ because the next item did not fit in Bᵢ, so (contents of Bᵢ) + (contents of Bᵢ₊₁) &gt; 1. Pair the bins up (1 with 2, 3 with 4, …): if NF uses m bins, there are ⌊m/2⌋ disjoint pairs, each holding more than 1. So Σ sᵢ &gt; ⌊m/2⌋ ≥ (m − 1)/2. Since OPT ≥ Σ sᵢ, we get m &lt; 2·OPT + 1, i.e. <b>m ≤ 2·OPT</b>.</p>
+<p>The bound is tight: items 0.5, ε, 0.5, ε, … make NF use one bin per pair, about twice the optimum.</p></div>
+
+<div class="bench" id="w-bins">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Bin packing stepper</h3></div>
+  <p class="bench-note">Sizes can be decimals (capacity 1) or integers with a larger capacity. The bar at the bottom compares all methods with the lower bound ⌈Σ s⌉.</p>
+  <div class="inputs">
+    <label class="grow">Item sizes<input id="bp-s" value="0.3 0.6 0.4 0.8 0.2 0.5 0.7 0.1 0.4"></label>
+    <label>Capacity<input type="number" id="bp-c" value="1" step="any"></label>
+    <label>Method<select id="bp-a"><option value="nf">Next Fit</option><option value="ff">First Fit</option><option value="bf">Best Fit</option><option value="ffd">First Fit Decreasing</option><option value="bfd">Best Fit Decreasing</option></select></label>
+    <button class="btn pri run">Run</button>
+  </div>
+  <div class="player"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="3"><p>Items total 4.3 in size. What is the best possible number of bins of capacity 1?</p>
+<div class="opts"><button>4</button><button>4.3</button><button>at most 4</button><button>at least 5</button></div>
+<p class="why">⌈4.3⌉ = 5 is a lower bound; the true optimum may be larger.</p></div>
+<div class="mcq" data-answer="0"><p>Which algorithm never looks back at earlier bins?</p>
+<div class="opts"><button>Next Fit</button><button>First Fit</button><button>Best Fit</button><button>First Fit Decreasing</button></div>
+<p class="why">NF closes a bin as soon as one item fails to fit. That makes it O(n) but wasteful.</p></div>
+</section>
+</section>
+
+<!-- ============ RANDOMIZED ============ -->
+<section class="topic" id="randomized" data-mod="4" data-title="Randomized algorithms, quicksort">
+<header>
+  <h1>Randomized algorithms and randomized quicksort</h1>
+  <p class="lede">A randomized algorithm flips coins while it runs. That can make bad inputs harmless, or trade a tiny, controllable chance of error for a big speed-up.</p>
+</header>
+<h2>Why randomize?</h2>
+<ul>
+  <li><b>No bad inputs:</b> a deterministic algorithm has fixed worst-case inputs that an adversary (or plain bad luck, like already-sorted data) can supply. A randomized one makes the same input behave differently each run, so its <b>expected</b> time holds for <b>every</b> input.</li>
+  <li><b>Simplicity and speed:</b> randomized algorithms are often much simpler than the best deterministic ones (primality testing, hashing, min-cut).</li>
+</ul>
+<h2>Las Vegas vs Monte Carlo</h2>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th></th><th>Las Vegas</th><th>Monte Carlo</th></tr>
+<tr><td>Answer</td><td><b>Always correct</b></td><td>Correct with high probability; may be wrong</td></tr>
+<tr><td>Running time</td><td>Random; we bound the <b>expected</b> time</td><td>Fixed (bounded) number of steps</td></tr>
+<tr><td>Example</td><td>Randomized quicksort</td><td>Miller–Rabin primality test, Karger's min-cut</td></tr>
+<tr><td>Improve by</td><td>Nothing to improve: the answer is already right</td><td>Repeating independent runs</td></tr>
+</table></div>
+<p>A Monte Carlo algorithm with <b>one-sided error</b> is never wrong on one kind of answer (say a "composite" verdict from a primality test is always right) and is wrong on the other kind with probability at most p. Run it t times independently: it is fooled every time with probability only <b>pᵗ</b>. A Las Vegas algorithm cannot be "amplified" this way because it never errs. Running it longer only changes how long it takes, not whether it is right.</p>
+
+<div class="bench" id="w-mc">
+  <div class="bench-top"><span class="tag">Try it</span><h3>How many Monte Carlo runs?</h3></div>
+  <div class="inputs">
+    <label>Error per run p<input id="mc-p" value="0.5" style="width:90px"></label>
+    <label>Target error<input id="mc-t" value="1e-9" style="width:110px"></label>
+  </div>
+  <div class="out"></div>
+</div>
+
+<h2>Randomized quicksort</h2>
+<p>Plain quicksort with the last element as pivot takes Θ(n²) on sorted input, because every split is 0 versus n − 1. Picking the pivot <b>uniformly at random</b> makes such lopsided splits unlikely on any input.</p>
+<pre class="code"><span class="k">RANDOMIZED-QUICKSORT</span>(A, p, r):
+    <span class="k">if</span> p &lt; r:
+        q = RANDOMIZED-PARTITION(A, p, r)
+        RANDOMIZED-QUICKSORT(A, p, q − 1)
+        RANDOMIZED-QUICKSORT(A, q + 1, r)
+
+<span class="k">RANDOMIZED-PARTITION</span>(A, p, r):
+    i = RANDOM(p, r)             <span class="c">// uniform random index</span>
+    exchange A[r] with A[i]      <span class="c">// move the pivot to the end</span>
+    <span class="k">return</span> PARTITION(A, p, r)
+
+<span class="k">PARTITION</span>(A, p, r):              <span class="c">// Lomuto scheme, pivot x = A[r]</span>
+    x = A[r];  i = p − 1
+    <span class="k">for</span> j = p <span class="k">to</span> r − 1:
+        <span class="k">if</span> A[j] ≤ x:
+            i = i + 1;  exchange A[i] with A[j]
+    exchange A[i + 1] with A[r]
+    <span class="k">return</span> i + 1</pre>
+<p>After PARTITION, everything left of position q is ≤ the pivot and everything right of it is larger. The pivot is in its final place.</p>
+
+<div class="bench" id="w-qs">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Randomized quicksort tracer</h3></div>
+  <p class="bench-note">Leave "Pivot values" empty for random pivots (press Run again for a new run). Or list values to force them: each call uses the first listed value present in its subarray.</p>
+  <div class="inputs">
+    <label class="grow">Array<input id="qs-a" value="41 8 66 23 15 90 34 52"></label>
+    <label class="grow">Pivot values (optional)<input id="qs-p" value="34, 15, 66"></label>
+    <label class="chk"><input type="checkbox" id="qs-d"> Show every comparison</label>
+    <button class="btn pri run">Run</button>
+  </div>
+  <div class="legend"><span><i style="background:var(--violet-soft);border-color:var(--violet)"></i>pivot</span><span><i class="lg-front"></i>≤ pivot region</span><span><i class="lg-cur"></i>j (being compared)</span><span><i class="lg-done"></i>in final place</span></div>
+  <div class="player"></div>
+</div>
+
+<h2>Expected running time: O(n log n)</h2>
+<p>All the work is comparisons inside PARTITION, so count the total number of comparisons X. Name the elements by sorted order: z₁ &lt; z₂ &lt; … &lt; zₙ.</p>
+<ol>
+  <li><b>Indicator variables.</b> Let X<sub>ij</sub> = 1 if zᵢ and zⱼ are ever compared, else 0. Two elements are compared at most once (only against a pivot, and a pivot is never used again). So X = Σ<sub>i&lt;j</sub> X<sub>ij</sub> and, by linearity of expectation, E[X] = Σ<sub>i&lt;j</sub> Pr[zᵢ compared with zⱼ].</li>
+  <li><b>When are zᵢ and zⱼ compared?</b> Look at the set Z<sub>ij</sub> = {zᵢ, zᵢ₊₁, …, zⱼ}, which has j − i + 1 elements. They stay together in one subarray until the first pivot chosen from Z<sub>ij</sub>. If that pivot is zᵢ or zⱼ, the two are compared. If it is something in between, they are split into different sides and never meet.</li>
+  <li><b>The probability.</b> Every element of Z<sub>ij</sub> is equally likely to be that first pivot, so Pr[compared] = 2 / (j − i + 1).</li>
+  <li><b>Add up.</b> Put k = j − i:
+<div class="big-math" style="margin:8px 0">E[X] = Σᵢ Σⱼ&gt;ᵢ 2/(j − i + 1)  =  Σᵢ Σₖ₌₁..ₙ₋ᵢ 2/(k + 1)
+     &lt; Σᵢ₌₁..ₙ Σₖ₌₁..ₙ 2/k  =  n · 2Hₙ  =  O(n log n)       (Hₙ ≈ ln n)</div></li>
+</ol>
+<p>Nothing in this argument depends on the input order, only on the random pivot choices. So the expected time is <b>O(n log n) for every input</b>, including sorted ones. The worst case is still Θ(n²) (if the random choices are terrible every time), but that is extremely unlikely. Randomized quicksort is a <b>Las Vegas</b> algorithm: the output is always correctly sorted; only the time varies.</p>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>A Monte Carlo test has one-sided error at most 1/3 per run. After 4 independent runs, the error is at most</p>
+<div class="opts"><button>4/3</button><button>1/81</button><button>1/12</button><button>1/3</button></div>
+<p class="why">(1/3)⁴ = 1/81.</p></div>
+<div class="mcq" data-answer="3"><p>In randomized quicksort, what is the probability that the smallest and largest of n elements are compared?</p>
+<div class="opts"><button>1/2</button><button>1/n</button><button>1</button><button>2/n</button></div>
+<p class="why">Z₁ₙ is the whole set, so they are compared only if one of them is the very first pivot: 2/n.</p></div>
+<div class="mcq" data-answer="0"><p>Randomized quicksort is a Las Vegas algorithm because</p>
+<div class="opts"><button>its output is always correct and only its running time is random</button><button>it can return an unsorted array</button><button>it always runs in O(n log n)</button><button>it uses a fixed number of steps</button></div>
+<p class="why">Correctness never depends on the coin flips.</p></div>
+</section>
+</section>

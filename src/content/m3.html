@@ -1,0 +1,496 @@
+<!-- ======================= MODULE 3 ======================= -->
+<section class="topic" id="greedy" data-mod="3" data-title="Greedy method, fractional knapsack">
+<header>
+  <h1>The greedy method and fractional knapsack</h1>
+  <p class="lede">A greedy algorithm builds its answer one piece at a time, always taking whatever looks best right now and never undoing a choice. It is fast and simple, but it only gives the optimum for problems with the right structure.</p>
+</header>
+
+<h2>Words you need</h2>
+<ul>
+  <li><b>Objective function</b>: the quantity to maximise or minimise (total profit, total cost).</li>
+  <li><b>Feasible solution</b>: any answer that satisfies the constraints (fits in the knapsack, forms a tree…).</li>
+  <li><b>Optimal solution</b>: a feasible solution with the best objective value.</li>
+</ul>
+
+<h2>Control abstraction</h2>
+<pre class="code"><span class="k">Algorithm</span> Greedy(a, n)       <span class="c">// a[1..n] holds the n inputs</span>
+{
+    solution := ∅;
+    <span class="k">for</span> i := 1 <span class="k">to</span> n <span class="k">do</span>
+    {
+        x := Select(a);                     <span class="c">// pick the best remaining input</span>
+        <span class="k">if</span> Feasible(solution ∪ {x}) <span class="k">then</span>
+            solution := Union(solution, x);
+    }
+    <span class="k">return</span> solution;
+}</pre>
+<p><b>Select</b> chooses by a greedy criterion and removes the input from a. <b>Feasible</b> checks that adding it keeps the solution valid. <b>Union</b> adds it. Every greedy algorithm in this module (knapsack, Kruskal, Prim, Dijkstra) fills in these three functions differently.</p>
+
+<h2>Fractional knapsack</h2>
+<p>You have a knapsack of capacity M and n objects. Object i has weight wᵢ and profit pᵢ. You may take any fraction xᵢ of an object (think gold dust, not gold bars) and earn pᵢxᵢ.</p>
+<div class="big-math">maximise    Σ pᵢ xᵢ
+subject to  Σ wᵢ xᵢ ≤ M,   0 ≤ xᵢ ≤ 1,   1 ≤ i ≤ n</div>
+<p><b>Greedy criterion:</b> take objects in decreasing order of <b>profit per unit weight pᵢ/wᵢ</b>. Take each one whole while it fits; take a fraction of the first one that does not fit; stop.</p>
+<pre class="code"><span class="k">Algorithm</span> GreedyKnapsack(M, n)
+<span class="c">// p[1..n], w[1..n] already sorted so that p[i]/w[i] ≥ p[i+1]/w[i+1]</span>
+{
+    <span class="k">for</span> i := 1 <span class="k">to</span> n <span class="k">do</span> x[i] := 0.0;
+    U := M;                                     <span class="c">// remaining capacity</span>
+    <span class="k">for</span> i := 1 <span class="k">to</span> n <span class="k">do</span>
+    {
+        <span class="k">if</span> (w[i] &gt; U) <span class="k">then</span> <span class="k">break</span>;
+        x[i] := 1.0;  U := U − w[i];
+    }
+    <span class="k">if</span> (i ≤ n) <span class="k">then</span> x[i] := U / w[i];
+}</pre>
+<p><b>Time:</b> sorting by ratio is O(n log n) and the loop is O(n), so <b>O(n log n)</b> overall (O(n) if the input is already sorted).</p>
+
+<h3>Worked example</h3>
+<p>n = 5, M = 16, profits (24, 30, 18, 10, 14), weights (6, 15, 3, 10, 4).</p>
+<div class="tbl-wrap"><table class="tbl num">
+<tr><th>Object</th><th>1</th><th>2</th><th>3</th><th>4</th><th>5</th></tr>
+<tr><th>pᵢ / wᵢ</th><td>4</td><td>2</td><td>6</td><td>1</td><td>3.5</td></tr>
+</table></div>
+<p>Order by ratio: 3, 1, 5, 2, 4. Take object 3 (weight 3, profit 18, room left 13), object 1 (6, 24, room 7), object 5 (4, 14, room 3). Object 2 weighs 15, so take 3/15 = 0.2 of it for profit 6. Room left 0.</p>
+<p>x = (1, 0.2, 1, 0, 1), total profit = 18 + 24 + 14 + 6 = <b>62</b>. Compare other greedy rules: largest profit first gives 34; smallest weight first gives 59. Only the ratio rule is always optimal.</p>
+<div class="idea"><b>Why the ratio rule is optimal (exchange argument)</b><p>Take any optimal solution that differs from the greedy one. Somewhere it uses less of a high-ratio object i and more of a lower-ratio object j. Swap a small weight δ of j for the same weight of i: the total weight is unchanged and the profit changes by δ(pᵢ/wᵢ − pⱼ/wⱼ) ≥ 0. Repeating such swaps turns the optimal solution into the greedy one without ever losing profit, so greedy is optimal too.</p></div>
+
+<div class="bench" id="w-knap">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Fractional knapsack</h3></div>
+  <div class="inputs">
+    <label class="grow">Profits<input id="kn-p" value="24 30 18 10 14"></label>
+    <label class="grow">Weights<input id="kn-w" value="6 15 3 10 4"></label>
+    <label>Capacity M<input type="number" id="kn-m" value="16"></label>
+    <label>Greedy rule<select id="kn-r"><option value="ratio">largest p/w first</option><option value="profit">largest profit first</option><option value="weight">smallest weight first</option></select></label>
+    <button class="btn pri run">Run</button>
+  </div>
+  <div class="player"></div>
+</div>
+
+<h2>Greedy vs dynamic programming</h2>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th></th><th>Greedy</th><th>Dynamic programming</th></tr>
+<tr><td>Decisions</td><td>One choice per step, made from local information, never revised</td><td>Considers all choices for each subproblem and keeps the best</td></tr>
+<tr><td>Subproblems</td><td>Only one remains after each choice</td><td>Many overlapping ones, stored in a table</td></tr>
+<tr><td>Correctness</td><td>Needs a proof (greedy-choice property)</td><td>Guaranteed by the principle of optimality</td></tr>
+<tr><td>Speed</td><td>Usually faster, little memory</td><td>Slower, needs a table</td></tr>
+<tr><td>Examples</td><td>Fractional knapsack, Kruskal, Prim, Dijkstra</td><td>0/1 knapsack, matrix chain, Floyd–Warshall</td></tr>
+</table></div>
+<div class="trap"><b>Greedy fails on 0/1 knapsack</b><p>When each object must be taken whole or not at all: M = 10, A (weight 6, profit 30, ratio 5), B (5, 20, ratio 4), C (5, 20, ratio 4). Greedy by ratio takes A; then neither B nor C fits: profit 30. Taking B and C gives 40. Picking A blocked a better combination, and greedy never goes back. 0/1 knapsack needs dynamic programming.</p></div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>In the fractional knapsack solution, how many objects can end up with a fraction strictly between 0 and 1?</p>
+<div class="opts"><button>Any number</button><button>At most one</button><button>Exactly two</button><button>None</button></div>
+<p class="why">Only the first object that does not fit gets split; after it the knapsack is full.</p></div>
+<div class="mcq" data-answer="3"><p>Which function in the greedy control abstraction decides the order in which inputs are considered?</p>
+<div class="opts"><button>Feasible</button><button>Union</button><button>Solution</button><button>Select</button></div>
+<p class="why">Select applies the greedy criterion, e.g. "largest p/w first".</p></div>
+</section>
+</section>
+
+<!-- ============ MST ============ -->
+<section class="topic" id="mst" data-mod="3" data-title="Minimum spanning trees">
+<header>
+  <h1>Minimum cost spanning trees: Kruskal and Prim</h1>
+  <p class="lede">Connect every town with roads using the least total road length. That is a minimum spanning tree (MST), and two greedy algorithms find one.</p>
+</header>
+<h2>Definitions</h2>
+<p>For a connected, undirected, weighted graph G = (V, E), a <b>spanning tree</b> is a subset of edges that connects all vertices with no cycle. It always has exactly <b>V − 1 edges</b>. A <b>minimum spanning tree</b> has the smallest total weight among all spanning trees. If all weights are distinct, the MST is unique.</p>
+<div class="idea"><b>Why greedy works here: the cut property</b><p>Split the vertices into any two groups. The lightest edge crossing between the groups is safe: it belongs to some MST. Both algorithms keep adding such a "lightest crossing edge"; they differ only in which cut they look at.</p></div>
+
+<h2>Kruskal's algorithm</h2>
+<p>Look at edges from lightest to heaviest. Accept an edge if it joins two different trees; reject it if both ends are already in the same tree (it would make a cycle). Disjoint sets answer "same tree?" quickly.</p>
+<pre class="code"><span class="k">MST-KRUSKAL</span>(G, w):
+    A = ∅
+    <span class="k">for each</span> vertex v: MAKE-SET(v)
+    sort the edges of E into non-decreasing order of weight
+    <span class="k">for each</span> edge (u, v) <span class="k">in that order</span>:
+        <span class="k">if</span> FIND-SET(u) ≠ FIND-SET(v):
+            A = A ∪ {(u, v)}
+            UNION(u, v)
+    <span class="k">return</span> A</pre>
+<p><b>Time:</b> sorting O(E log E). Then 2E finds and V − 1 unions cost O(E α(V)). Since E ≤ V², log E ≤ 2 log V, so the total is <b>O(E log E) = O(E log V)</b>. Sorting dominates.</p>
+
+<h2>Prim's algorithm</h2>
+<p>Grow one tree from a start vertex r. At each step add the cheapest edge from the tree to a vertex not yet in it. Each outside vertex v keeps <b>key[v]</b> = the weight of its cheapest edge into the tree so far.</p>
+<pre class="code"><span class="k">MST-PRIM</span>(G, w, r):
+    <span class="k">for each</span> u: key[u] = ∞; π[u] = NIL
+    key[r] = 0
+    Q = min-priority queue of all vertices, keyed by key[]
+    <span class="k">while</span> Q not empty:
+        u = EXTRACT-MIN(Q)                <span class="c">// u joins the tree via edge (π[u], u)</span>
+        <span class="k">for each</span> v <span class="k">in</span> Adj[u]:
+            <span class="k">if</span> v ∈ Q <span class="k">and</span> w(u, v) &lt; key[v]:
+                π[v] = u; key[v] = w(u, v)   <span class="c">// DECREASE-KEY</span></pre>
+<p><b>Time with a binary min-heap:</b> V EXTRACT-MINs at O(log V) each, and up to E DECREASE-KEYs at O(log V) each: <b>O((V + E) log V) = O(E log V)</b>. With a plain array instead of a heap (scan for the minimum): <b>O(V²)</b>. With a Fibonacci heap: O(E + V log V).</p>
+
+<div class="bench" id="w-mst">
+  <div class="bench-top"><span class="tag">Try it</span><h3>MST stepper</h3></div>
+  <p class="bench-note">Edges as <code>u v weight</code>. For Kruskal, equal weights keep the order you typed them in.</p>
+  <div class="inputs">
+    <label class="grow">Edges<textarea id="mt-e">A B 7
+A D 5
+B C 8
+B D 9
+B E 7
+C E 5
+D E 15
+D F 6
+E F 8
+E G 9
+F G 11</textarea></label>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label>Algorithm<select id="mt-alg"><option value="k">Kruskal</option><option value="p">Prim</option></select></label>
+      <label>Prim start<input id="mt-s" value="A" style="width:80px"></label>
+      <button class="btn pri run">Run</button>
+    </div>
+  </div>
+  <div class="player"></div>
+</div>
+
+<h2>Kruskal vs Prim</h2>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th></th><th>Kruskal</th><th>Prim</th></tr>
+<tr><td>Grows</td><td>A forest that merges into one tree</td><td>A single tree from the start vertex</td></tr>
+<tr><td>Picks</td><td>Globally lightest edge that makes no cycle</td><td>Lightest edge leaving the current tree</td></tr>
+<tr><td>Data structure</td><td>Sorted edge list + disjoint sets</td><td>Min-priority queue (heap) or array</td></tr>
+<tr><td>Time</td><td>O(E log E)</td><td>O(E log V) heap · O(V²) array</td></tr>
+<tr><td>Better for</td><td><b>Sparse</b> graphs (E ≈ V)</td><td><b>Dense</b> graphs (E ≈ V²), where the O(V²) array version beats E log V = V² log V</td></tr>
+<tr><td>Disconnected graph</td><td>Gives a minimum spanning forest</td><td>Spans only the start vertex's component</td></tr>
+</table></div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="2"><p>A connected graph has 9 vertices. How many edges does Kruskal accept?</p>
+<div class="opts"><button>9</button><button>It depends on the weights</button><button>8</button><button>All edges lighter than the heaviest MST edge</button></div>
+<p class="why">Any spanning tree on V vertices has V − 1 edges.</p></div>
+<div class="mcq" data-answer="0"><p>Kruskal rejects an edge (u, v) because</p>
+<div class="opts"><button>FIND-SET(u) = FIND-SET(v), so the edge would form a cycle</button><button>it is heavier than the previous edge</button><button>u has already been visited</button><button>its weight is negative</button></div>
+<p class="why">Same set means u and v are already connected by accepted edges.</p></div>
+<div class="mcq" data-answer="3"><p>For a complete graph on V vertices, which is asymptotically fastest?</p>
+<div class="opts"><button>Kruskal, O(E log E)</button><button>Prim with a binary heap</button><button>Both are O(V)</button><button>Prim with an array, O(V²)</button></div>
+<p class="why">E ≈ V²/2, so E log V ≈ V² log V, while the array version is V².</p></div>
+</section>
+</section>
+
+<!-- ============ DIJKSTRA ============ -->
+<section class="topic" id="dijkstra" data-mod="3" data-title="Dijkstra's shortest paths">
+<header>
+  <h1>Dijkstra's single-source shortest paths</h1>
+  <p class="lede">Find the cheapest route from one source vertex to every other vertex, when no edge has a negative weight. It looks like Prim's algorithm, but the key of a vertex is its total distance from the source instead of one edge weight.</p>
+</header>
+<h2>Relaxation</h2>
+<p>Every vertex v keeps an estimate d[v] of its distance from the source s (start: d[s] = 0, all others ∞) and a predecessor π[v]. <b>Relaxing</b> edge (u, v) asks: "is going through u a shortcut to v?"</p>
+<pre class="code"><span class="k">RELAX</span>(u, v, w):
+    <span class="k">if</span> d[u] + w(u, v) &lt; d[v]:
+        d[v] = d[u] + w(u, v)
+        π[v] = u</pre>
+
+<h2>The algorithm</h2>
+<pre class="code"><span class="k">DIJKSTRA</span>(G, w, s):
+    <span class="k">for each</span> v: d[v] = ∞; π[v] = NIL
+    d[s] = 0
+    S = ∅                               <span class="c">// vertices whose distance is final</span>
+    Q = min-priority queue of all vertices, keyed by d[]
+    <span class="k">while</span> Q not empty:
+        u = EXTRACT-MIN(Q)              <span class="c">// greedy choice</span>
+        S = S ∪ {u}
+        <span class="k">for each</span> v <span class="k">in</span> Adj[u]:
+            RELAX(u, v, w)              <span class="c">// DECREASE-KEY if d[v] drops</span></pre>
+<div class="idea"><b>Why the greedy choice is safe</b><p>When u has the smallest d among unfinished vertices, any other route to u would have to leave the finished set S through some unfinished vertex y with d[y] ≥ d[u], and then continue along edges of weight ≥ 0. Such a route can never come back cheaper than d[u]. So d[u] is final the moment u is extracted. This argument breaks as soon as an edge can be negative.</p></div>
+<h3>Analysis</h3>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Priority queue</th><th>EXTRACT-MIN (×V)</th><th>DECREASE-KEY (×E)</th><th>Total</th></tr>
+<tr><td>Unsorted array</td><td>O(V)</td><td>O(1)</td><td><b>O(V²)</b></td></tr>
+<tr><td>Binary min-heap</td><td>O(log V)</td><td>O(log V)</td><td><b>O((V + E) log V)</b></td></tr>
+<tr><td>Fibonacci heap</td><td>O(log V) amortised</td><td>O(1) amortised</td><td>O(E + V log V)</td></tr>
+</table></div>
+
+<div class="bench" id="w-dij">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Dijkstra stepper</h3></div>
+  <p class="bench-note">The table grows one row per iteration, like the tables in textbooks. Bold green = final distance. Ties go to the alphabetically smaller vertex.</p>
+  <div class="inputs">
+    <label class="grow">Edges (u v weight)<textarea id="dj-e">a b 4
+a c 2
+b c 1
+b d 5
+c d 8
+c e 10
+d e 2
+d f 6
+e f 2</textarea></label>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label>Source<input id="dj-s" value="a" style="width:80px"></label>
+      <label class="chk"><input type="checkbox" id="dj-dir"> Directed</label>
+      <button class="btn pri run">Run</button>
+    </div>
+  </div>
+  <div class="chips">
+    <button class="chip" data-fill='{"dj-e":"S A 1\nA C 1\nS B 3\nB A -3","dj-s":"S","dj-dir":true}'>Negative edge: watch it go wrong</button>
+  </div>
+  <div class="player"></div>
+</div>
+
+<div class="trap"><b>Negative edges break Dijkstra</b><p>Try the "negative edge" example above: S→A (1), A→C (1), S→B (3), B→A (−3). Dijkstra finalises A = 1 and C = 2 before it ever looks at B. Then B → A shows that A is really 0 and C is really 1, but those vertices are already finished. The true distances need Bellman–Ford. (Negative edges are fine for Floyd–Warshall, as long as there is no negative cycle.)</p></div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>Dijkstra on a graph with V vertices and E edges using a binary heap runs in</p>
+<div class="opts"><button>O(V²)</button><button>O((V + E) log V)</button><button>O(VE)</button><button>O(V³)</button></div>
+<p class="why">V extract-mins plus up to E decrease-keys, each O(log V).</p></div>
+<div class="mcq" data-answer="2"><p>The difference between Prim and Dijkstra is that Dijkstra's key for v is</p>
+<div class="opts"><button>the weight of v's cheapest edge to the tree</button><button>the number of edges from s</button><button>d[u] + w(u, v): the whole path length from s</button><button>always 0</button></div>
+<p class="why">Prim compares single edge weights; Dijkstra compares total distances from the source.</p></div>
+</section>
+</section>
+
+<!-- ============ DP ============ -->
+<section class="topic" id="dp" data-mod="3" data-title="Dynamic programming">
+<header>
+  <h1>Dynamic programming</h1>
+  <p class="lede">When a recursive solution keeps solving the same subproblems again and again, solve each one once and store the answer in a table. That is dynamic programming (DP).</p>
+</header>
+<h2>When DP applies</h2>
+<div class="cols">
+  <div class="card"><h4>Optimal substructure</h4><p>An optimal solution is built from optimal solutions to its subproblems.</p></div>
+  <div class="card"><h4>Overlapping subproblems</h4><p>The same smaller problems come up again and again. (In divide and conquer, like merge sort, they do not.)</p></div>
+</div>
+<h3>Seeing the overlap: binomial coefficients</h3>
+<p>C(n, k) = C(n−1, k−1) + C(n−1, k), with C(n, 0) = C(n, n) = 1. Plain recursion recomputes the same values many times:</p>
+<figure class="fig-scroll" data-static="binom"></figure>
+<p>The plain recursion makes 2·C(n, k) − 1 calls, which is exponential: for C(30, 15) that is over 300 million calls, yet there are only 30 × 15 different subproblems. DP fills Pascal's triangle row by row instead, each entry once: <b>O(nk)</b> time.</p>
+
+<h2>Control abstraction (the four steps)</h2>
+<ol>
+  <li><b>Characterise</b> the structure of an optimal solution: what are the subproblems?</li>
+  <li><b>Recursively define</b> the value of an optimal solution in terms of smaller subproblems (the recurrence).</li>
+  <li><b>Compute</b> the values bottom-up, smallest subproblems first, storing them in a table.</li>
+  <li><b>Construct</b> an optimal solution from the stored information (keep a second table of the choices made).</li>
+</ol>
+<p>Step 3 can also be done top-down with <b>memoisation</b>: write the plain recursion, but check a table before computing and store each result after. Same complexity, easier to write.</p>
+
+<h2>Principle of optimality</h2>
+<div class="idea"><b>Bellman's principle of optimality</b><p>An optimal sequence of decisions has the property that, whatever the initial state and first decision are, the remaining decisions must form an optimal sequence with respect to the state that results from the first decision.</p></div>
+<p>In plain words: every piece of an optimal solution is itself optimal for its own subproblem. DP is only correct when this holds.</p>
+<div class="cols">
+  <div class="card"><h4>Holds: shortest paths</h4><p>If the shortest route P → R → T passes through R, then its P → R part must be a shortest P → R route. If a shorter P → R route existed, swapping it in would make the whole route shorter: a contradiction ("cut and paste").</p></div>
+  <div class="card"><h4>Fails: longest simple paths</h4><p>Triangle with vertices a, b, c, all edges weight 1. The longest simple path from a to c is a → b → c (length 2). Its piece a → b has length 1, but the longest simple path from a to b is a → c → b (length 2). The subpaths are not optimal, because the two halves compete for the same vertices.</p></div>
+</div>
+
+<h2>Divide and conquer vs DP vs greedy</h2>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th></th><th>Divide and conquer</th><th>Dynamic programming</th><th>Greedy</th></tr>
+<tr><td>Subproblems</td><td>Independent</td><td>Overlapping</td><td>One at a time</td></tr>
+<tr><td>Direction</td><td>Top-down</td><td>Usually bottom-up (or memoised)</td><td>Forward, no going back</td></tr>
+<tr><td>Stores results</td><td>No</td><td>Yes, in a table</td><td>No</td></tr>
+<tr><td>Examples</td><td>Merge sort, Strassen</td><td>Matrix chain, Floyd–Warshall</td><td>Kruskal, Dijkstra</td></tr>
+</table></div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="0"><p>Why isn't merge sort considered dynamic programming?</p>
+<div class="opts"><button>Its subproblems do not overlap, so storing them saves nothing</button><button>It is not recursive</button><button>It has no optimal substructure</button><button>It uses too much memory</button></div>
+<p class="why">Each half of the array is sorted exactly once.</p></div>
+<div class="mcq" data-answer="2"><p>Which step of the DP abstraction needs the extra "choice" table?</p>
+<div class="opts"><button>Characterise</button><button>Recursively define</button><button>Construct the optimal solution</button><button>None</button></div>
+<p class="why">The value table gives the best cost; the choice table (like s[i,j] in matrix chain) rebuilds how to achieve it.</p></div>
+</section>
+</section>
+
+<!-- ============ MCM ============ -->
+<section class="topic" id="mcm" data-mod="3" data-title="Matrix chain multiplication">
+<header>
+  <h1>Matrix chain multiplication</h1>
+  <p class="lede">Multiplying matrices is associative, so (AB)C = A(BC), but the two orders can cost wildly different amounts of work. DP finds the cheapest bracketing.</p>
+</header>
+<h2>The problem</h2>
+<p>Multiplying a p×q matrix by a q×r matrix takes <b>p·q·r</b> scalar multiplications. A chain A₁A₂…Aₙ where Aᵢ has dimensions p<sub>i−1</sub> × pᵢ is described by the list ⟨p₀, p₁, …, pₙ⟩.</p>
+<div class="eg"><b>Why the order matters</b><p>A (10×100), B (100×5), C (5×50). (AB)C costs 10·100·5 + 10·5·50 = 5,000 + 2,500 = 7,500. A(BC) costs 100·5·50 + 10·100·50 = 25,000 + 50,000 = 75,000. Ten times more work for the same answer.</p></div>
+<p>Trying every bracketing is hopeless: the number of bracketings is the Catalan number, which grows like 4ⁿ/n^1.5.</p>
+
+<h2>DP formulation</h2>
+<p>Let <b>m[i, j]</b> = the minimum cost of computing Aᵢ…Aⱼ. The last multiplication splits the chain at some k: (Aᵢ…Aₖ)(Aₖ₊₁…Aⱼ). The left part is p<sub>i−1</sub>×pₖ and the right part is pₖ×pⱼ, so the final multiplication costs p<sub>i−1</sub>·pₖ·pⱼ.</p>
+<div class="formula"><b>Recurrence</b>
+<div class="big-math" style="margin:6px 0;border:0;padding:0;background:none">m[i, i] = 0
+m[i, j] = min over i ≤ k &lt; j of { m[i, k] + m[k+1, j] + p<sub>i−1</sub>·pₖ·pⱼ }
+s[i, j] = the k that gave the minimum</div></div>
+<p>Fill the table by <b>chain length</b>: first all chains of length 2 (the diagonal just above the main one), then length 3, and so on up to m[1, n]. Each entry only needs shorter chains, which are already done.</p>
+<pre class="code"><span class="k">MATRIX-CHAIN-ORDER</span>(p):           <span class="c">// p = ⟨p0, …, pn⟩</span>
+    <span class="k">for</span> i = 1 <span class="k">to</span> n: m[i, i] = 0
+    <span class="k">for</span> L = 2 <span class="k">to</span> n:                    <span class="c">// chain length</span>
+        <span class="k">for</span> i = 1 <span class="k">to</span> n − L + 1:
+            j = i + L − 1;  m[i, j] = ∞
+            <span class="k">for</span> k = i <span class="k">to</span> j − 1:
+                q = m[i, k] + m[k+1, j] + p[i−1]·p[k]·p[j]
+                <span class="k">if</span> q &lt; m[i, j]: m[i, j] = q; s[i, j] = k
+
+<span class="k">PRINT-OPTIMAL-PARENS</span>(s, i, j):
+    <span class="k">if</span> i == j: print "A" i
+    <span class="k">else</span>: print "("; PRINT-OPTIMAL-PARENS(s, i, s[i, j])
+          PRINT-OPTIMAL-PARENS(s, s[i, j] + 1, j); print ")"</pre>
+<p><b>Analysis:</b> three nested loops of at most n each: <b>Θ(n³) time</b>; two n×n tables: <b>Θ(n²) space</b>.</p>
+
+<h3>Worked example: ⟨10, 20, 5, 15, 30⟩</h3>
+<p>A₁ is 10×20, A₂ is 20×5, A₃ is 5×15, A₄ is 15×30.</p>
+<div class="big-math">Length 2:
+ m[1,2] = 10·20·5  = 1000           m[2,3] = 20·5·15 = 1500           m[3,4] = 5·15·30 = 2250
+Length 3:
+ m[1,3] = min{ k=1: 0 + 1500 + 10·20·15 = 4500,   k=2: 1000 + 0 + 10·5·15 = 1750 } = 1750, s=2
+ m[2,4] = min{ k=2: 0 + 2250 + 20·5·30 = 5250,    k=3: 1500 + 0 + 20·15·30 = 10500 } = 5250, s=2
+Length 4:
+ m[1,4] = min{ k=1: 0 + 5250 + 10·20·30 = 11250,
+               k=2: 1000 + 2250 + 10·5·30 = 4750,
+               k=3: 1750 + 0 + 10·15·30 = 6250 } = 4750, s=2
+Optimal: s[1,4] = 2  →  (A₁A₂)(A₃A₄),  cost 4750</div>
+
+<div class="bench" id="w-mcm">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Matrix chain table filler</h3></div>
+  <p class="bench-note">Enter the dimension list ⟨p₀, p₁, …, pₙ⟩. Each step fills one cell and lists every split k it tried. The cells it reads are shaded blue.</p>
+  <div class="inputs">
+    <label class="grow">Dimensions<input id="mc-p" value="10 20 5 15 30"></label>
+    <button class="btn pri run">Run</button>
+  </div>
+  <div class="player"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>For a chain of 6 matrices, which entry is filled last?</p>
+<div class="opts"><button>m[6, 6]</button><button>m[1, 6]</button><button>m[1, 2]</button><button>m[5, 6]</button></div>
+<p class="why">m[1, n] covers the whole chain, the only chain of length n.</p></div>
+<div class="mcq" data-answer="3"><p>Matrices 4×3 and 3×7 multiplied cost</p>
+<div class="opts"><button>14</button><button>28</button><button>21</button><button>84</button></div>
+<p class="why">p·q·r = 4·3·7 = 84.</p></div>
+</section>
+</section>
+
+<!-- ============ FLOYD ============ -->
+<section class="topic" id="floyd" data-mod="3" data-title="Floyd–Warshall all-pairs">
+<header>
+  <h1>Floyd–Warshall: all-pairs shortest paths</h1>
+  <p class="lede">Distances between every pair of vertices at once, by allowing more and more vertices to be used as stopovers. It is a dynamic program that works even with negative edges.</p>
+</header>
+<h2>The idea</h2>
+<p>Number the vertices 1…n. Let <b>Dᵏ[i][j]</b> be the shortest distance from i to j using only vertices from {1, …, k} as intermediate stops. D⁰ is just the edge-weight matrix (0 on the diagonal, ∞ where there is no edge). At step k, the best i → j route either avoids k (the old value) or goes i → k → j:</p>
+<div class="formula"><b>Recurrence</b><div class="big-math" style="margin:6px 0;border:0;padding:0;background:none">Dᵏ[i][j] = min( Dᵏ⁻¹[i][j],  Dᵏ⁻¹[i][k] + Dᵏ⁻¹[k][j] )</div></div>
+<pre class="code"><span class="k">FLOYD-WARSHALL</span>(W):              <span class="c">// W = n×n weight matrix</span>
+    D = W
+    <span class="k">for</span> k = 1 <span class="k">to</span> n:
+        <span class="k">for</span> i = 1 <span class="k">to</span> n:
+            <span class="k">for</span> j = 1 <span class="k">to</span> n:
+                <span class="k">if</span> D[i][k] + D[k][j] &lt; D[i][j]:
+                    D[i][j] = D[i][k] + D[k][j]
+                    P[i][j] = P[k][j]        <span class="c">// predecessor, to rebuild paths</span>
+    <span class="k">return</span> D</pre>
+<p><b>Analysis:</b> three nested loops: <b>Θ(n³) time</b>, <b>Θ(n²) space</b> (one matrix can be updated in place, because row k and column k do not change during step k).</p>
+<div class="idea"><b>Doing it by hand quickly</b><p>In Dᵏ, row k and column k are copied unchanged, and so is the diagonal. For every other cell, compare the old value with (row-k entry in its column) + (column-k entry in its row). If row k or column k has ∞ in that position, the cell cannot change.</p></div>
+
+<h2>Negative edges and negative cycles</h2>
+<p>Negative edge weights are fine. A <b>negative-weight cycle</b> is not: going around it again and again makes the path cheaper without limit, so "shortest path" has no meaning for vertices that can reach the cycle. Floyd–Warshall then gives meaningless numbers, but it does reveal the problem: some vertex ends with <b>D[i][i] &lt; 0</b> (a route from i back to itself with negative total). Check the diagonal of the final matrix.</p>
+
+<div class="bench" id="w-floyd">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Floyd–Warshall matrices</h3></div>
+  <p class="bench-note">Enter the weight matrix one row per line. Use <code>inf</code> or <code>-</code> for no edge. Blue = row and column k (copied as is); green = value improved through k.</p>
+  <div class="inputs">
+    <label class="grow">Weight matrix<textarea id="fw-m">0 4 11 inf
+inf 0 5 9
+3 inf 0 1
+6 inf inf 0</textarea></label>
+    <button class="btn pri run">Run</button>
+  </div>
+  <div class="chips">
+    <button class="chip" data-fill='{"fw-m":"0 2 inf\ninf 0 -3\n1 inf 0"}'>Has a negative cycle</button>
+  </div>
+  <div class="player"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="2"><p>When computing D³ from D², which entries are guaranteed not to change?</p>
+<div class="opts"><button>Only the diagonal</button><button>Row 3 only</button><button>Row 3, column 3 and the diagonal</button><button>None</button></div>
+<p class="why">D[3][j] = min(D[3][j], D[3][3] + D[3][j]) and D[3][3] = 0, so row 3 stays; the same holds for column 3.</p></div>
+<div class="mcq" data-answer="0"><p>Running Floyd–Warshall ends with D[2][2] = −4. This means</p>
+<div class="opts"><button>Vertex 2 lies on a negative-weight cycle</button><button>The algorithm has a bug</button><button>Vertex 2 is unreachable</button><button>The graph is a DAG</button></div>
+<p class="why">A negative distance from a vertex to itself is a negative cycle through it.</p></div>
+</section>
+</section>
+
+<!-- ============ BACKTRACKING ============ -->
+<section class="topic" id="nqueens" data-mod="3" data-title="Backtracking, N-Queens">
+<header>
+  <h1>Backtracking and the N-Queens problem</h1>
+  <p class="lede">Build a solution one component at a time. The moment a partial solution cannot possibly be completed, abandon it and go back to try the next option. This prunes huge parts of the search.</p>
+</header>
+<h2>Vocabulary</h2>
+<ul>
+  <li>The solution is a tuple <b>(x₁, x₂, …, xₙ)</b>, chosen one component at a time.</li>
+  <li><b>Explicit constraints</b> restrict each xᵢ to a set of values on its own. N-Queens: xᵢ ∈ {1, …, n}, the column of the queen in row i.</li>
+  <li><b>Implicit constraints</b> relate components to each other. N-Queens: no two queens share a column (xᵢ ≠ xⱼ) or a diagonal (|xᵢ − xⱼ| ≠ |i − j|).</li>
+  <li>The <b>state space tree</b> has one level per component; each path from the root is a partial tuple.</li>
+  <li>A <b>bounding function</b> tests a node: if the partial tuple already breaks a constraint, the node is killed and its whole subtree is skipped.</li>
+  <li>Node states: <b>live</b> (generated, children not all generated), <b>E-node</b> (being expanded now), <b>dead</b> (fully explored or killed).</li>
+</ul>
+<h2>Control abstraction</h2>
+<pre class="code"><span class="k">Algorithm</span> Backtrack(k)
+<span class="c">// x[1..k−1] has been chosen; try every value for x[k]</span>
+{
+    <span class="k">for</span> (each x[k] ∈ T(x[1], …, x[k−1])) <span class="k">do</span>
+    {
+        <span class="k">if</span> (B_k(x[1], x[2], …, x[k]) ≠ false) <span class="k">then</span>    <span class="c">// bounding function</span>
+        {
+            <span class="k">if</span> (x[1], …, x[k]) is a path to an answer node
+                <span class="k">then</span> write (x[1:k]);
+            <span class="k">if</span> (k &lt; n) <span class="k">then</span> Backtrack(k + 1);
+        }
+    }
+}</pre>
+<p>T(…) gives the candidate values for the next component; B<sub>k</sub> is the bounding function. Backtracking is a depth-first search of the state space tree that skips killed subtrees.</p>
+
+<h2>N-Queens</h2>
+<p>Place n queens on an n×n board so that no two attack each other (same row, column or diagonal). One queen per row is automatic, so x[k] is the column of the queen in row k.</p>
+<figure class="fig-scroll" data-static="diag"></figure>
+<pre class="code"><span class="k">Algorithm</span> Place(k, i)
+<span class="c">// true if a queen can go in row k, column i</span>
+{
+    <span class="k">for</span> j := 1 <span class="k">to</span> k − 1 <span class="k">do</span>
+        <span class="k">if</span> ((x[j] = i)                          <span class="c">// same column</span>
+            <span class="k">or</span> (Abs(x[j] − i) = Abs(j − k)))     <span class="c">// same diagonal</span>
+        <span class="k">then</span> <span class="k">return</span> false;
+    <span class="k">return</span> true;
+}
+
+<span class="k">Algorithm</span> NQueens(k, n)
+{
+    <span class="k">for</span> i := 1 <span class="k">to</span> n <span class="k">do</span>
+    {
+        <span class="k">if</span> Place(k, i) <span class="k">then</span>
+        {
+            x[k] := i;
+            <span class="k">if</span> (k = n) <span class="k">then</span> write (x[1:n]);
+            <span class="k">else</span> NQueens(k + 1, n);
+        }
+    }
+}</pre>
+<p>Call NQueens(1, n). Place is O(k), and the worst case explores an exponential number of nodes, but bounding kills most of them early. Solutions: 4 queens has 2, 5 has 10, 8 has 92.</p>
+
+<div class="bench" id="w-nq">
+  <div class="bench-top"><span class="tag">Try it</span><h3>N-Queens backtracking</h3></div>
+  <p class="bench-note">Each step tries one square. Red shading shows the squares attacked by queens already placed. The state space tree (for n ≤ 6) labels each edge with the column tried; ✕ marks a node killed by Place.</p>
+  <div class="inputs">
+    <label>n<select id="nq-n"><option>4</option><option selected>5</option><option>6</option><option>7</option><option>8</option></select></label>
+    <label>Stop<select id="nq-all"><option value="1">at the first solution</option><option value="all">after all solutions</option></select></label>
+  </div>
+  <div class="player"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>Queens at (row 2, col 3) and (row 5, col 6). Do they attack each other?</p>
+<div class="opts"><button>No</button><button>Yes, |3 − 6| = |2 − 5| = 3, same diagonal</button><button>Yes, same column</button><button>Only if n &gt; 6</button></div>
+<p class="why">Equal row and column differences mean a shared diagonal.</p></div>
+<div class="mcq" data-answer="2"><p>"x[i] ∈ {1, …, n}" in N-Queens is</p>
+<div class="opts"><button>an implicit constraint</button><button>a bounding function</button><button>an explicit constraint</button><button>the objective function</button></div>
+<p class="why">It limits each component by itself, without referring to the others.</p></div>
+</section>
+</section>

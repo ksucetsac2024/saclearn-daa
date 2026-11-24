@@ -1,0 +1,307 @@
+<section class="topic" id="cheatsheet" data-mod="0" data-title="Complexity Cheat Sheet">
+<header>
+  <h1>DAA Complexity &amp; Recurrences Cheat Sheet</h1>
+  <p class="lede">Every recurrence formula, asymptotic bound, dynamic programming state transition, and graph complexity for KTU PCCST502 in one reference sheet.</p>
+</header>
+
+<div class="cs-filter-bar">
+  <input type="text" id="cs-search" placeholder="Filter algorithms by name, paradigm, or complexity (e.g. Dijkstra, O(n log n), DP)...">
+  <div class="cs-pills" id="cs-filter-pills">
+    <button class="cs-pill on" data-filter="all">All</button>
+    <button class="cs-pill" data-filter="m1">Module 1</button>
+    <button class="cs-pill" data-filter="m2">Module 2</button>
+    <button class="cs-pill" data-filter="m3">Module 3</button>
+    <button class="cs-pill" data-filter="m4">Module 4</button>
+  </div>
+</div>
+
+<h2>1. Master Theorem Quick Lookup</h2>
+<p>For recurrences of the form <span class="math">T(n) = aT(n/b) + f(n)</span> where <span class="math">a ≥ 1, b &gt; 1</span>, compare <span class="math">f(n)</span> with <span class="math">n<sup>log<sub>b</sub> a</sup></span>:</p>
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>Case</th>
+        <th>Condition</th>
+        <th>Polynomial Gap</th>
+        <th>Solution T(n)</th>
+        <th>Classic Example</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Case 1</b></td>
+        <td><span class="math">f(n) = O(n<sup>log<sub>b</sub> a − ε</sup>)</span></td>
+        <td><span class="math">f(n)</span> grows strictly slower</td>
+        <td><span class="math">Θ(n<sup>log<sub>b</sub> a</sup>)</span></td>
+        <td><span class="math">T(n) = 8T(n/2) + n² ⇒ Θ(n³)</span></td>
+      </tr>
+      <tr>
+        <td><b>Case 2</b></td>
+        <td><span class="math">f(n) = Θ(n<sup>log<sub>b</sub> a</sup> log<sup>k</sup> n)</span></td>
+        <td>Same growth rate (<span class="math">k ≥ 0</span>)</td>
+        <td><span class="math">Θ(n<sup>log<sub>b</sub> a</sup> log<sup>k+1</sup> n)</span></td>
+        <td>Merge sort: <span class="math">2T(n/2) + n ⇒ Θ(n log n)</span></td>
+      </tr>
+      <tr>
+        <td><b>Case 3</b></td>
+        <td><span class="math">f(n) = Ω(n<sup>log<sub>b</sub> a + ε</sup>)</span></td>
+        <td><span class="math">f(n)</span> grows strictly faster (requires <span class="math">a·f(n/b) ≤ c·f(n)</span>)</td>
+        <td><span class="math">Θ(f(n))</span></td>
+        <td><span class="math">T(n) = 2T(n/2) + n² ⇒ Θ(n²)</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="trap"><b>Master Theorem Inapplicability Trap</b>
+<p>Master theorem fails when: (1) <span class="math">a</span> is not constant (e.g. <span class="math">2<sup>n</sup> T(n/2)</span>), (2) <span class="math">b ≤ 1</span>, (3) <span class="math">f(n)</span> is not a polynomial difference (e.g. <span class="math">T(n) = 2T(n/2) + n/log n</span>), or (4) regularity condition fails in Case 3.</p>
+</div>
+
+<h2>2. Complete Algorithm Complexity Matrix</h2>
+<div class="tbl-wrap">
+  <table class="tbl" id="cs-algo-table">
+    <thead>
+      <tr>
+        <th>Algorithm / Problem</th>
+        <th>Module</th>
+        <th>Design Paradigm</th>
+        <th>Best Case</th>
+        <th>Average Case</th>
+        <th>Worst Case</th>
+        <th>Space</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr data-mod="1">
+        <td><b>Linear Search</b></td>
+        <td><span class="tag">M1</span></td>
+        <td>Brute Force</td>
+        <td><span class="math">Θ(1)</span></td>
+        <td><span class="math">Θ(n)</span></td>
+        <td><span class="math">Θ(n)</span></td>
+        <td><span class="math">Θ(1)</span></td>
+      </tr>
+      <tr data-mod="1">
+        <td><b>Binary Search</b></td>
+        <td><span class="tag">M1</span></td>
+        <td>Decrease &amp; Conquer</td>
+        <td><span class="math">Θ(1)</span></td>
+        <td><span class="math">Θ(log n)</span></td>
+        <td><span class="math">Θ(log n)</span></td>
+        <td><span class="math">Θ(1)</span></td>
+      </tr>
+      <tr data-mod="1">
+        <td><b>AVL Tree Search / Insert / Delete</b></td>
+        <td><span class="tag">M1</span></td>
+        <td>Self-balancing BST</td>
+        <td><span class="math">Θ(1)</span></td>
+        <td><span class="math">Θ(log n)</span></td>
+        <td><span class="math">Θ(log n)</span></td>
+        <td><span class="math">Θ(n)</span></td>
+      </tr>
+      <tr data-mod="2">
+        <td><b>Disjoint Sets (Union-Find + Rank + Path Compression)</b></td>
+        <td><span class="tag">M2</span></td>
+        <td>Tree Data Structure</td>
+        <td><span class="math">Θ(1)</span></td>
+        <td><span class="math">Θ(α(n))</span></td>
+        <td><span class="math">Θ(α(n))</span></td>
+        <td><span class="math">Θ(n)</span></td>
+      </tr>
+      <tr data-mod="2">
+        <td><b>Breadth-First Search (BFS)</b></td>
+        <td><span class="tag">M2</span></td>
+        <td>Graph Traversal (Queue)</td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V)</span></td>
+      </tr>
+      <tr data-mod="2">
+        <td><b>Depth-First Search (DFS)</b></td>
+        <td><span class="tag">M2</span></td>
+        <td>Graph Traversal (Stack)</td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V)</span></td>
+      </tr>
+      <tr data-mod="2">
+        <td><b>Topological Sorting (Kahn / DFS)</b></td>
+        <td><span class="tag">M2</span></td>
+        <td>DAG Traversal</td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V)</span></td>
+      </tr>
+      <tr data-mod="2">
+        <td><b>Strongly Connected Components (Kosaraju)</b></td>
+        <td><span class="tag">M2</span></td>
+        <td>Double DFS + Transpose</td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V + E)</span></td>
+        <td><span class="math">Θ(V)</span></td>
+      </tr>
+      <tr data-mod="2">
+        <td><b>Merge Sort</b></td>
+        <td><span class="tag">M2</span></td>
+        <td>Divide &amp; Conquer</td>
+        <td><span class="math">Θ(n log n)</span></td>
+        <td><span class="math">Θ(n log n)</span></td>
+        <td><span class="math">Θ(n log n)</span></td>
+        <td><span class="math">Θ(n)</span></td>
+      </tr>
+      <tr data-mod="2">
+        <td><b>Strassen's Matrix Multiplication</b></td>
+        <td><span class="tag">M2</span></td>
+        <td>Divide &amp; Conquer</td>
+        <td><span class="math">Θ(n<sup>2.807</sup>)</span></td>
+        <td><span class="math">Θ(n<sup>2.807</sup>)</span></td>
+        <td><span class="math">Θ(n<sup>2.807</sup>)</span></td>
+        <td><span class="math">Θ(n²)</span></td>
+      </tr>
+      <tr data-mod="3">
+        <td><b>Fractional Knapsack</b></td>
+        <td><span class="tag">M3</span></td>
+        <td>Greedy (Ratio Sort)</td>
+        <td><span class="math">Θ(n log n)</span></td>
+        <td><span class="math">Θ(n log n)</span></td>
+        <td><span class="math">Θ(n log n)</span></td>
+        <td><span class="math">Θ(1)</span></td>
+      </tr>
+      <tr data-mod="3">
+        <td><b>Kruskal's MST</b></td>
+        <td><span class="tag">M3</span></td>
+        <td>Greedy + Disjoint Set</td>
+        <td><span class="math">Θ(E log E)</span></td>
+        <td><span class="math">Θ(E log E)</span></td>
+        <td><span class="math">Θ(E log E)</span></td>
+        <td><span class="math">Θ(V + E)</span></td>
+      </tr>
+      <tr data-mod="3">
+        <td><b>Prim's MST (Min-Heap)</b></td>
+        <td><span class="tag">M3</span></td>
+        <td>Greedy</td>
+        <td><span class="math">Θ(E log V)</span></td>
+        <td><span class="math">Θ(E log V)</span></td>
+        <td><span class="math">Θ(E log V)</span></td>
+        <td><span class="math">Θ(V)</span></td>
+      </tr>
+      <tr data-mod="3">
+        <td><b>Dijkstra's Single Source Shortest Path</b></td>
+        <td><span class="tag">M3</span></td>
+        <td>Greedy (Min-Heap)</td>
+        <td><span class="math">Θ((V + E) log V)</span></td>
+        <td><span class="math">Θ((V + E) log V)</span></td>
+        <td><span class="math">Θ((V + E) log V)</span></td>
+        <td><span class="math">Θ(V)</span></td>
+      </tr>
+      <tr data-mod="3">
+        <td><b>0/1 Knapsack (Dynamic Programming)</b></td>
+        <td><span class="tag">M3</span></td>
+        <td>Dynamic Programming</td>
+        <td><span class="math">Θ(n·W)</span></td>
+        <td><span class="math">Θ(n·W)</span></td>
+        <td><span class="math">Θ(n·W)</span></td>
+        <td><span class="math">Θ(n·W)</span></td>
+      </tr>
+      <tr data-mod="3">
+        <td><b>Matrix Chain Multiplication</b></td>
+        <td><span class="tag">M3</span></td>
+        <td>Dynamic Programming</td>
+        <td><span class="math">Θ(n³)</span></td>
+        <td><span class="math">Θ(n³)</span></td>
+        <td><span class="math">Θ(n³)</span></td>
+        <td><span class="math">Θ(n²)</span></td>
+      </tr>
+      <tr data-mod="3">
+        <td><b>Floyd–Warshall All-Pairs Shortest Path</b></td>
+        <td><span class="tag">M3</span></td>
+        <td>Dynamic Programming</td>
+        <td><span class="math">Θ(V³)</span></td>
+        <td><span class="math">Θ(V³)</span></td>
+        <td><span class="math">Θ(V³)</span></td>
+        <td><span class="math">Θ(V²)</span></td>
+      </tr>
+      <tr data-mod="3">
+        <td><b>N-Queens Problem</b></td>
+        <td><span class="tag">M3</span></td>
+        <td>Backtracking</td>
+        <td><span class="math">Θ(n)</span></td>
+        <td><span class="math">O(n!)</span></td>
+        <td><span class="math">O(n!)</span></td>
+        <td><span class="math">Θ(n)</span></td>
+      </tr>
+      <tr data-mod="4">
+        <td><b>Traveling Salesperson Problem (TSP - B&amp;B)</b></td>
+        <td><span class="tag">M4</span></td>
+        <td>Branch &amp; Bound</td>
+        <td><span class="math">Θ(n² 2<sup>n</sup>)</span></td>
+        <td><span class="math">O(2<sup>n</sup>)</span></td>
+        <td><span class="math">O(n!)</span></td>
+        <td><span class="math">O(n!)</span></td>
+      </tr>
+      <tr data-mod="4">
+        <td><b>Bin Packing (First Fit / Best Fit)</b></td>
+        <td><span class="tag">M4</span></td>
+        <td>Approximation</td>
+        <td><span class="math">Θ(n log n)</span></td>
+        <td><span class="math">Θ(n log n)</span></td>
+        <td><span class="math">Θ(n²)</span></td>
+        <td><span class="math">Θ(n)</span></td>
+      </tr>
+      <tr data-mod="4">
+        <td><b>Randomized Quicksort</b></td>
+        <td><span class="tag">M4</span></td>
+        <td>Randomized (Las Vegas)</td>
+        <td><span class="math">Θ(n log n)</span></td>
+        <td><span class="math">Θ(n log n)</span></td>
+        <td><span class="math">Θ(n²)</span></td>
+        <td><span class="math">Θ(log n)</span></td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<h2>3. Dynamic Programming Transition Formulas</h2>
+<div class="cols">
+  <div class="card">
+    <h4>0/1 Knapsack</h4>
+    <pre class="code">K[i, w] =
+  if w &lt; wt[i]: K[i - 1, w]
+  else: max(K[i - 1, w],
+            val[i] + K[i - 1, w - wt[i]])</pre>
+  </div>
+  <div class="card">
+    <h4>Matrix Chain Multiplication</h4>
+    <pre class="code">m[i, j] =
+  if i == j: 0
+  else: min { m[i, k] + m[k + 1, j]
+              + p[i-1]*p[k]*p[j] }
+        for i &lt;= k &lt; j</pre>
+  </div>
+  <div class="card">
+    <h4>Floyd-Warshall All-Pairs</h4>
+    <pre class="code">D[k][i][j] =
+  min(D[k-1][i][j],
+      D[k-1][i][k] + D[k-1][k][j])</pre>
+  </div>
+</div>
+
+<h2>4. Complexity Classes &amp; Reduction Chains</h2>
+<div class="idea">
+  <b>Definitions for KTU PCCST502 Part A</b>
+  <ul>
+    <li><b>P:</b> Decision problems solvable in polynomial time <span class="math">O(n<sup>k</sup>)</span> by a deterministic Turing machine.</li>
+    <li><b>NP:</b> Decision problems verifiable in polynomial time by a deterministic Turing machine (or solvable in polynomial time by a non-deterministic machine).</li>
+    <li><b>NP-Hard:</b> A problem <span class="math">X</span> such that every problem in NP is polynomial-time reducible to <span class="math">X</span> (<span class="math">Y ≤<sub>p</sub> X, ∀ Y ∈ NP</span>). <span class="math">X</span> does not need to be in NP.</li>
+    <li><b>NP-Complete:</b> A problem that is both in <b>NP</b> and <b>NP-Hard</b>. (Proved by reducing a known NPC problem to it).</li>
+  </ul>
+</div>
+<div class="formula">
+  <b>Cook's Reduction Chain (Syllabus Core)</b>
+  <p><span class="math">Circuit-SAT ≤<sub>p</sub> SAT ≤<sub>p</sub> 3-SAT ≤<sub>p</sub> Clique ≤<sub>p</sub> Vertex Cover ≤<sub>p</sub> Hamiltonian Cycle ≤<sub>p</sub> TSP</span></p>
+</div>
+</section>

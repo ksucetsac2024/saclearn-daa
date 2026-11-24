@@ -1,0 +1,550 @@
+<!-- ======================= MODULE 2 ======================= -->
+<section class="topic" id="dsets" data-mod="2" data-title="Disjoint sets">
+<header>
+  <h1>Disjoint sets (union–find)</h1>
+  <p class="lede">Keep track of items split into groups that never overlap, and answer "are these two in the same group?" quickly while groups keep merging. Kruskal's algorithm and connected components both depend on it.</p>
+</header>
+
+<h2>The three operations</h2>
+<p>Each set is identified by one of its members, called the <b>representative</b>.</p>
+<div class="cols">
+  <div class="card"><h4>MAKE-SET(x)</h4><p>Create a new set {x}. x is its own representative.</p></div>
+  <div class="card"><h4>FIND-SET(x)</h4><p>Return the representative of x's set. Two items are in the same set exactly when FIND-SET gives the same answer for both.</p></div>
+  <div class="card"><h4>UNION(x, y)</h4><p>Merge the set containing x with the set containing y into one set.</p></div>
+</div>
+<p>When we analyse these, <b>n</b> is the number of MAKE-SET operations (the number of items) and <b>m</b> is the total number of operations of all three kinds. At most n − 1 unions are possible, because each one reduces the number of sets by one.</p>
+
+<h2>Representation 1: linked lists</h2>
+<p>Each set is a linked list. The set object has a <b>head</b> (the representative) and a <b>tail</b>. Every member stores a pointer back to the set object.</p>
+<figure class="fig-scroll" data-static="ll-union"></figure>
+<ul>
+  <li><b>FIND-SET(x)</b>: follow x's back pointer to the head. O(1).</li>
+  <li><b>UNION(x, y)</b>: append y's list after x's tail, then update the back pointer of <i>every</i> element that moved. Cost = size of the appended list.</li>
+</ul>
+<div class="trap"><b>Why plain linked-list union is slow</b><p>Start with n singletons and always append the bigger list onto the single new item: UNION(x2, x1), UNION(x3, x2), … The i-th union moves i elements, for a total of 1 + 2 + … + (n−1) = Θ(n²).</p></div>
+<div class="idea"><b>Weighted-union heuristic</b><p>Store each list's length and always append the <b>shorter</b> list onto the longer one. Then a sequence of m operations, n of them MAKE-SET, takes <b>O(m + n log n)</b>.</p>
+<p><b>Why:</b> follow one element x. Its back pointer is updated only when x is in the smaller list. After that union, x's set is at least twice as big as before. A set can double at most log₂n times before it holds all n elements, so x's pointer changes at most log₂n times. Over n elements that is O(n log n) for all unions, plus O(1) for each of the m operations.</p></div>
+
+<h2>Representation 2: a forest of trees</h2>
+<p>Each set is a tree. Every node points to its <b>parent</b>; the root points to itself and is the representative. FIND-SET walks up to the root; UNION makes one root the child of the other.</p>
+<h3>Array representation</h3>
+<p>Since each node stores just one parent, the whole forest fits in an array <span class="math">p[1..n]</span>. Roots are marked with p[i] = i (CLRS) or p[i] = −1 (Horowitz; weighted versions store −size at the root).</p>
+<figure class="fig-scroll" data-static="ds-array"></figure>
+
+<h3>Two heuristics that make it fast</h3>
+<div class="cols">
+  <div class="card"><h4>Union by rank</h4><p>Each root keeps a <b>rank</b>, an upper bound on its tree's height. Link the root with <b>smaller rank under the larger</b>. Only when ranks are equal does the new root's rank go up by 1. Tree height stays ≤ log₂n.</p></div>
+  <div class="card"><h4>Path compression</h4><p>During FIND-SET(x), make every node on the path from x to the root point <b>directly to the root</b>. The next find on any of them takes one step. Ranks are not changed by compression.</p></div>
+</div>
+<pre class="code"><span class="k">MAKE-SET</span>(x):   x.p = x;  x.rank = 0
+
+<span class="k">FIND-SET</span>(x):
+    <span class="k">if</span> x ≠ x.p:
+        x.p = FIND-SET(x.p)      <span class="c">// path compression</span>
+    <span class="k">return</span> x.p
+
+<span class="k">UNION</span>(x, y):  LINK(FIND-SET(x), FIND-SET(y))
+
+<span class="k">LINK</span>(a, b):                    <span class="c">// a, b are roots</span>
+    <span class="k">if</span> a.rank &gt; b.rank:  b.p = a
+    <span class="k">else</span>:                a.p = b
+        <span class="k">if</span> a.rank == b.rank:  b.rank = b.rank + 1</pre>
+<p>On a tie, CLRS's LINK puts the <i>first</i> root under the second. Many question papers state the opposite rule ("make the second root a child of the first"). Read the rule given in the question; the stepper below lets you choose either.</p>
+
+<h3>Analysis</h3>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Implementation</th><th>Cost of m operations, n MAKE-SETs</th></tr>
+<tr><td>Linked lists, plain union</td><td>Θ(n²) in the worst case</td></tr>
+<tr><td>Linked lists, weighted union</td><td>O(m + n log n)</td></tr>
+<tr><td>Forest, union by rank only</td><td>O(m log n), since height ≤ log n</td></tr>
+<tr><td>Forest, path compression only</td><td>Θ(n + f·(1 + log<sub>2+f/n</sub> n)) for f finds</td></tr>
+<tr><td>Forest, <b>both heuristics</b></td><td><b>O(m · α(n))</b></td></tr>
+</table></div>
+<p>α(n) is the inverse Ackermann function. It grows so slowly that α(n) ≤ 4 for any n you could ever store (up to about 10⁸⁰), so in practice each operation costs a constant on average (amortised).</p>
+<div class="idea"><b>Why rank stays ≤ log n</b><p>A root of rank r has at least 2ʳ nodes in its tree: rank only increases when two trees of equal rank r join, giving at least 2ʳ + 2ʳ = 2ʳ⁺¹ nodes. With n nodes total, 2ʳ ≤ n, so r ≤ log₂n.</p></div>
+
+<div class="bench" id="w-dsu">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Union–find stepper</h3></div>
+  <p class="bench-note">One operation per line: <code>union 1 2</code> or <code>find 8</code> (short forms <code>u 1 2</code>, <code>f 8</code> also work). Items you use are created automatically with MAKE-SET. The number under each root is its rank.</p>
+  <div class="inputs">
+    <label class="grow">Operations<textarea id="ds-ops">u a b
+u c d
+u e f
+u a c
+f d
+u g e
+u a g
+f f</textarea></label>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label class="chk"><input type="checkbox" id="ds-rank" checked> Union by rank</label>
+      <label class="chk"><input type="checkbox" id="ds-pc" checked> Path compression</label>
+      <label>On equal ranks<select id="ds-tie"><option value="second">second root goes under first</option><option value="first">first root goes under second (CLRS)</option></select></label>
+      <button class="btn pri run">Run</button>
+    </div>
+  </div>
+  <div class="chips">
+    <button class="chip" data-fill='{"ds-ops":"u 2 1\nu 3 2\nu 4 3\nu 5 4\nu 6 5\nf 6","ds-rank":false,"ds-pc":false}'>Worst case: no heuristics</button>
+    <button class="chip" data-fill='{"ds-ops":"u 2 1\nu 3 2\nu 4 3\nu 5 4\nu 6 5\nf 6\nf 4","ds-rank":false,"ds-pc":true}'>Compression only on a chain</button>
+  </div>
+  <div class="player"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>Union by rank links two roots of ranks 2 and 3. What is the new root's rank?</p>
+<div class="opts"><button>4</button><button>3</button><button>5</button><button>2</button></div>
+<p class="why">The rank-2 root goes under the rank-3 root. Ranks were unequal, so nothing increases.</p></div>
+<div class="mcq" data-answer="2"><p>What does path compression change?</p>
+<div class="opts"><button>The ranks of the nodes on the path</button><button>Which element is the representative</button><button>Parent pointers on the find path, which now point straight to the root</button><button>The number of sets</button></div>
+<p class="why">Only parent pointers change. The root (representative) and its rank stay the same.</p></div>
+<div class="mcq" data-answer="0"><p>In the linked-list representation with weighted union, how many times can one element's back pointer change?</p>
+<div class="opts"><button>At most log₂n times</button><button>At most once</button><button>Up to n − 1 times</button><button>Never</button></div>
+<p class="why">Each change at least doubles the size of the element's set.</p></div>
+</section>
+</section>
+
+<!-- ============ CONNECTED COMPONENTS ============ -->
+<section class="topic" id="components" data-mod="2" data-title="Connected components">
+<header>
+  <h1>Connected components with disjoint sets</h1>
+  <p class="lede">A connected component of an undirected graph is a largest group of vertices that can all reach each other. Feeding the edges to union–find builds the components one edge at a time.</p>
+</header>
+<h2>The algorithm</h2>
+<pre class="code"><span class="k">CONNECTED-COMPONENTS</span>(G):
+    <span class="k">for each</span> vertex v <span class="k">in</span> G.V:
+        MAKE-SET(v)
+    <span class="k">for each</span> edge (u, v) <span class="k">in</span> G.E:
+        <span class="k">if</span> FIND-SET(u) ≠ FIND-SET(v):
+            UNION(u, v)
+
+<span class="k">SAME-COMPONENT</span>(u, v):
+    <span class="k">return</span> FIND-SET(u) == FIND-SET(v)</pre>
+<p>Start with every vertex alone. Each edge says "these two are connected", so their sets merge. An edge whose ends are already in one set adds nothing new (it would close a cycle). After all edges, each set is exactly one connected component.</p>
+<div class="idea"><b>Cost</b><p>V MAKE-SETs, 2E FIND-SETs and at most V − 1 UNIONs, so O((V + E)·α(V)) with both heuristics, practically linear. This is better than BFS/DFS when edges arrive one at a time (the graph keeps growing), because union–find never has to start over.</p></div>
+
+<div class="bench" id="w-cc">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Components, edge by edge</h3></div>
+  <p class="bench-note">Edges are processed in the order you list them. The same colour means the same set. Add pairs to test SAME-COMPONENT at the end.</p>
+  <div class="inputs">
+    <label>Vertices<input id="cc-v" value="p q r s t u v w x"></label>
+    <label class="grow">Edges (in processing order)<input id="cc-e" value="p q, s t, r p, v w, q r, t u, w x, u s"></label>
+    <label>Queries<input id="cc-q" value="p r, q u, t s"></label>
+    <button class="btn pri run">Run</button>
+  </div>
+  <div class="player"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="3"><p>A graph has 10 vertices and the algorithm performs 7 successful unions. How many components are there?</p>
+<div class="opts"><button>7</button><button>10</button><button>17</button><button>3</button></div>
+<p class="why">Start with 10 sets; each successful union removes one set: 10 − 7 = 3.</p></div>
+<div class="mcq" data-answer="1"><p>An edge (u, v) arrives and FIND-SET(u) = FIND-SET(v). What does that tell you?</p>
+<div class="opts"><button>u and v are in different components</button><button>The edge closes a cycle, because u and v were already connected</button><button>The graph is disconnected</button><button>The algorithm has a bug</button></div>
+<p class="why">There was already a path from u to v. Kruskal's algorithm uses exactly this test to reject an edge.</p></div>
+</section>
+</section>
+
+<!-- ============ GRAPHS + BFS/DFS ============ -->
+<section class="topic" id="traversal" data-mod="2" data-title="Graphs, BFS &amp; DFS">
+<header>
+  <h1>Graph representations, BFS and DFS</h1>
+  <p class="lede">A graph G = (V, E) is a set of vertices and edges. Before traversing one we have to store it. The choice of storage changes the running time of every algorithm that follows.</p>
+</header>
+
+<h2>Adjacency matrix vs adjacency list</h2>
+<div class="cols">
+  <div class="card"><h4>Adjacency matrix</h4><p>A V×V table: A[u][v] = 1 (or the weight) if edge (u,v) exists, else 0 (or ∞). Symmetric for undirected graphs.</p></div>
+  <div class="card"><h4>Adjacency list</h4><p>An array of V lists; the list for u holds every v with an edge (u, v). Undirected edges appear in both lists, so the lists have 2E entries in total.</p></div>
+</div>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Operation</th><th>Matrix</th><th>List</th></tr>
+<tr><td>Space</td><td>Θ(V²)</td><td>Θ(V + E)</td></tr>
+<tr><td>Is (u, v) an edge?</td><td>Θ(1)</td><td>O(degree(u))</td></tr>
+<tr><td>Visit all neighbours of u</td><td>Θ(V)</td><td>Θ(degree(u))</td></tr>
+<tr><td>Out-degree of every vertex</td><td>Θ(V²) (row sums)</td><td>Θ(V + E) (list lengths)</td></tr>
+<tr><td>In-degree of every vertex (directed)</td><td>Θ(V²) (column sums)</td><td>Θ(V + E) (one scan, counting each v seen)</td></tr>
+<tr><td>Best for</td><td>dense graphs (E close to V²), fast edge lookup</td><td>sparse graphs (E much smaller than V²), most algorithms</td></tr>
+</table></div>
+
+<div class="bench" id="w-repr">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Representation builder</h3></div>
+  <div class="inputs">
+    <label class="grow">Edges, one per line or comma separated<input id="rp-e" value="a b, a c, b d, c d, d e, e c"></label>
+    <label class="chk"><input type="checkbox" id="rp-dir" checked> Directed</label>
+    <button class="btn pri run">Build</button>
+  </div>
+  <div class="out"></div>
+</div>
+
+<h2>Breadth-first search (BFS)</h2>
+<p>BFS explores in rings: first the start vertex s, then all vertices one edge away, then two edges away, and so on. A <b>queue</b> (first in, first out) produces this order.</p>
+<pre class="code"><span class="k">BFS</span>(G, s):
+    <span class="k">for each</span> u: color[u] = WHITE, d[u] = ∞, π[u] = NIL
+    color[s] = GRAY; d[s] = 0; Q = ⟨s⟩
+    <span class="k">while</span> Q not empty:
+        u = DEQUEUE(Q)
+        <span class="k">for each</span> v <span class="k">in</span> Adj[u]:
+            <span class="k">if</span> color[v] == WHITE:          <span class="c">// first time we see v</span>
+                color[v] = GRAY; d[v] = d[u] + 1; π[v] = u
+                ENQUEUE(Q, v)
+        color[u] = BLACK</pre>
+<ul>
+  <li><b>White</b> = not yet seen, <b>gray</b> = seen and waiting in the queue, <b>black</b> = finished.</li>
+  <li>d[v] is the <b>shortest-path distance</b> in number of edges from s. BFS solves shortest paths in unweighted graphs.</li>
+  <li>The edges (π[v], v) form the <b>BFS tree</b>.</li>
+  <li>Time: each vertex is enqueued once, each adjacency list is scanned once: <b>O(V + E)</b> with lists, <b>O(V²)</b> with a matrix.</li>
+</ul>
+
+<h2>Depth-first search (DFS)</h2>
+<p>DFS goes as deep as it can along one path, and only backs up when it hits a dead end. It uses recursion (or an explicit <b>stack</b>). Each vertex gets two timestamps: <b>d[u]</b> when it is discovered and <b>f[u]</b> when all its descendants are done.</p>
+<pre class="code"><span class="k">DFS</span>(G):
+    <span class="k">for each</span> u: color[u] = WHITE
+    time = 0
+    <span class="k">for each</span> u <span class="k">in</span> G.V:
+        <span class="k">if</span> color[u] == WHITE: DFS-VISIT(u)
+
+<span class="k">DFS-VISIT</span>(u):
+    time = time + 1; d[u] = time; color[u] = GRAY
+    <span class="k">for each</span> v <span class="k">in</span> Adj[u]:
+        <span class="k">if</span> color[v] == WHITE: π[v] = u; DFS-VISIT(v)
+    color[u] = BLACK; time = time + 1; f[u] = time</pre>
+<h3>Classifying edges (directed graphs)</h3>
+<p>When DFS looks along edge (u, v), the colour of v tells you what kind of edge it is:</p>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>v's colour when (u,v) is explored</th><th>Edge type</th><th>Meaning</th></tr>
+<tr><td>White</td><td><b>Tree edge</b></td><td>v discovered through u</td></tr>
+<tr><td>Gray</td><td><b>Back edge</b></td><td>v is an ancestor of u still on the stack: <b>a cycle</b></td></tr>
+<tr><td>Black, and d[u] &lt; d[v]</td><td><b>Forward edge</b></td><td>shortcut to a descendant that is already finished</td></tr>
+<tr><td>Black, and d[u] &gt; d[v]</td><td><b>Cross edge</b></td><td>to a vertex in another, finished branch or tree</td></tr>
+</table></div>
+<p>In an <b>undirected</b> graph every edge is either a tree edge or a back edge. Ignore the edge straight back to your own parent.</p>
+<div class="idea"><b>Parenthesis structure and cycle detection</b><p>For any two vertices, the intervals [d, f] are either nested (one is a descendant of the other) or disjoint, never partly overlapping, like matched brackets. A directed graph has a cycle <b>if and only if</b> DFS finds a back edge, i.e. it reaches a <b>gray</b> vertex.</p></div>
+<p>Time: <b>O(V + E)</b> with lists, <b>O(V²)</b> with a matrix, for the same reason as BFS.</p>
+
+<div class="bench" id="w-trav">
+  <div class="bench-top"><span class="tag">Try it</span><h3>BFS / DFS stepper</h3></div>
+  <p class="bench-note">Neighbours are visited in alphabetical or numeric order. DFS restarts from the next white vertex in that order if some are unreachable.</p>
+  <div class="inputs">
+    <label class="grow">Edges<textarea id="tv-e">s r
+s w
+r v
+w t
+w x
+t x
+t u
+x u
+x y
+u y</textarea></label>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label>Algorithm<select id="tv-alg"><option value="bfs">BFS</option><option value="dfs">DFS</option></select></label>
+      <label>Start<input id="tv-s" value="s" style="width:80px"></label>
+      <label class="chk"><input type="checkbox" id="tv-dir"> Directed</label>
+      <button class="btn pri run">Run</button>
+    </div>
+  </div>
+  <div class="chips">
+    <button class="chip" data-fill='{"tv-e":"p q\np r\np s\nq r\nr p\ns r\ns t\nt t2\nt2 s\nu t\nu v","tv-alg":"dfs","tv-s":"p","tv-dir":true}'>Directed DFS with all four edge types</button>
+  </div>
+  <div class="legend"><span><i class="lg-front"></i>gray (in queue / on stack)</span><span><i class="lg-cur"></i>being processed</span><span><i class="lg-done"></i>black (finished)</span><span style="color:var(--green)">━ tree</span><span style="color:var(--red)">╍ back</span><span style="color:var(--violet)">┈ forward</span><span style="color:var(--sky)">─·─ cross</span></div>
+  <div class="player"></div>
+</div>
+
+<h2>BFS vs DFS</h2>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th></th><th>BFS</th><th>DFS</th></tr>
+<tr><td>Data structure</td><td>Queue</td><td>Stack / recursion</td></tr>
+<tr><td>Order</td><td>Level by level</td><td>Deep first, then backtrack</td></tr>
+<tr><td>Gives</td><td>Shortest paths (edge count), distances</td><td>Discovery/finish times, edge types</td></tr>
+<tr><td>Used for</td><td>Shortest path in unweighted graphs, bipartite test</td><td>Cycle detection, topological sort, SCCs</td></tr>
+<tr><td>Time</td><td colspan="2" style="text-align:center">O(V + E) with adjacency lists, O(V²) with a matrix</td></tr>
+</table></div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="2"><p>Directed DFS explores (u, v) and finds v gray. The edge is a</p>
+<div class="opts"><button>tree edge</button><button>cross edge</button><button>back edge, so the graph has a cycle</button><button>forward edge</button></div>
+<p class="why">Gray means v is still on the recursion stack, an ancestor of u.</p></div>
+<div class="mcq" data-answer="0"><p>d[a] = 2, f[a] = 9, d[b] = 4, f[b] = 7. What is b?</p>
+<div class="opts"><button>A descendant of a</button><button>An ancestor of a</button><button>In a separate tree</button><button>Impossible timestamps</button></div>
+<p class="why">[4,7] lies inside [2,9], so b was discovered and finished while a was open.</p></div>
+<div class="mcq" data-answer="3"><p>Which representation should you use to check "is there an edge (u, v)?" millions of times on a dense graph?</p>
+<div class="opts"><button>Adjacency list</button><button>Edge list</button><button>Incidence list</button><button>Adjacency matrix</button></div>
+<p class="why">The matrix answers in O(1), and on a dense graph its V² space is no worse than a list.</p></div>
+</section>
+</section>
+
+<!-- ============ TOPOLOGICAL SORT ============ -->
+<section class="topic" id="toposort" data-mod="2" data-title="Topological sorting">
+<header>
+  <h1>Topological sorting</h1>
+  <p class="lede">Given tasks with "must happen before" rules, list them in an order that obeys every rule. In graph terms: order the vertices of a directed graph so every edge points forward.</p>
+</header>
+
+<h2>What it is, and when it exists</h2>
+<p>A <b>topological order</b> of a directed graph is a linear ordering of its vertices such that for every edge u → v, u comes before v. Think of getting dressed: socks before shoes, shirt before tie.</p>
+<div class="idea"><b>A topological order exists if and only if the graph is a DAG (directed acyclic graph)</b>
+<p><b>Cycle ⇒ no order:</b> on a cycle v₁ → v₂ → … → vₖ → v₁, each vertex must come before the next, so v₁ must come before itself. Impossible.</p>
+<p><b>DAG ⇒ order exists:</b> a DAG always has a vertex with in-degree 0 (otherwise walk backwards along incoming edges forever; with finitely many vertices you would repeat one, which is a cycle). Put that vertex first, delete it, and the rest is still a DAG. Repeat.</p></div>
+<p>A DAG can have many valid orders. Any one of them is a correct answer.</p>
+
+<h2>Method 1: DFS finishing times</h2>
+<pre class="code"><span class="k">TOPOLOGICAL-SORT</span>(G):
+    run DFS(G) to compute finishing times f[v]
+    as each vertex finishes, insert it at the FRONT of a linked list
+    <span class="k">return</span> the list           <span class="c">// = vertices in decreasing f[v]</span></pre>
+<p><b>Why it works:</b> in a DAG, for every edge u → v we get f[v] &lt; f[u]. When DFS explores u → v, v cannot be gray (that would be a back edge, i.e. a cycle). If v is white it becomes u's descendant and finishes first; if v is black it already finished. Either way u finishes later, so u lands in front. Time O(V + E).</p>
+
+<h2>Method 2: source removal (Kahn's algorithm)</h2>
+<pre class="code"><span class="k">KAHN</span>(G):
+    compute in-degree of every vertex
+    Q = all vertices with in-degree 0
+    <span class="k">while</span> Q not empty:
+        u = remove from Q;  append u to the output
+        <span class="k">for each</span> v <span class="k">in</span> Adj[u]:
+            indeg[v] = indeg[v] − 1
+            <span class="k">if</span> indeg[v] == 0: add v to Q
+    <span class="k">if</span> output has fewer than V vertices: the graph has a cycle</pre>
+<p>Computing in-degrees is O(V + E), every vertex enters Q once, and every edge is decremented once: <b>O(V + E)</b>. A bonus: if some vertices never reach in-degree 0, they are on or behind a cycle, so Kahn's method also detects cycles.</p>
+
+<div class="bench" id="w-topo">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Topological sort stepper</h3></div>
+  <p class="bench-note">Default: a weekday morning. Edges mean "must be done before". Ties are broken in alphabetical order.</p>
+  <div class="inputs">
+    <label class="grow">Edges (u → v)<textarea id="tp-e">wake shower
+wake coffee
+shower dress
+coffee breakfast
+dress shoes
+breakfast leave
+shoes leave
+dress keys
+keys leave</textarea></label>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <label>Method<select id="tp-m"><option value="dfs">DFS finishing times</option><option value="kahn">Source removal (Kahn)</option></select></label>
+      <button class="btn pri run">Run</button>
+    </div>
+  </div>
+  <div class="chips">
+    <button class="chip" data-fill='{"tp-e":"a b\nb c\nc a\nc d"}'>Graph with a cycle</button>
+  </div>
+  <div class="player"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>In the DFS method, the first vertex of the topological order is the one with</p>
+<div class="opts"><button>the smallest discovery time</button><button>the largest finishing time</button><button>the smallest finishing time</button><button>in-degree 1</button></div>
+<p class="why">The list is built by inserting finished vertices at the front, so the last to finish comes first.</p></div>
+<div class="mcq" data-answer="2"><p>Kahn's algorithm stops with 2 vertices never output. What does that mean?</p>
+<div class="opts"><button>Those vertices are isolated</button><button>The queue was implemented wrongly</button><button>The graph has a cycle</button><button>Those two must go last</button></div>
+<p class="why">Vertices on a cycle never reach in-degree 0.</p></div>
+</section>
+</section>
+
+<!-- ============ SCC ============ -->
+<section class="topic" id="scc" data-mod="2" data-title="Strongly connected components">
+<header>
+  <h1>Strongly connected components</h1>
+  <p class="lede">In a directed graph, a strongly connected component (SCC) is a largest group of vertices where every vertex can reach every other one. Kosaraju's algorithm finds all of them with two depth-first searches.</p>
+</header>
+
+<h2>The idea</h2>
+<p>Two vertices u and v are in the same SCC if there is a path u ⇝ v <b>and</b> a path v ⇝ u. Shrink every SCC to a single vertex and you get the <b>component graph</b> G<sup>SCC</sup>.</p>
+<div class="idea"><b>The component graph is always a DAG</b><p>Suppose there were a cycle between two components C and C′. Then every vertex of C could reach every vertex of C′ and back, so C and C′ would be one bigger SCC. That contradicts C and C′ being maximal.</p></div>
+
+<h2>Kosaraju's algorithm (two DFS passes)</h2>
+<pre class="code"><span class="k">STRONGLY-CONNECTED-COMPONENTS</span>(G):
+1   call DFS(G) to compute finishing times f[u]
+2   compute Gᵀ  (reverse every edge)
+3   call DFS(Gᵀ), but in the main loop take vertices
+    in order of decreasing f[u] from step 1
+4   each DFS tree formed in step 3 is one SCC</pre>
+<p><b>Why it works, intuitively:</b> the vertex that finishes last in pass 1 sits in a "source" component of the component DAG, one with no incoming edges from other components. Reversing all edges turns that component into a sink: from inside it, the second DFS cannot leak into any other component, so its tree is exactly that SCC. Then the next-highest unvisited vertex starts the next SCC, and so on.</p>
+<p><b>Time:</b> two DFS runs plus building Gᵀ, all <b>O(V + E)</b> with adjacency lists. Gᵀ and G have exactly the same SCCs, since reversing edges keeps "u and v reach each other".</p>
+
+<div class="bench" id="w-scc">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Kosaraju stepper</h3></div>
+  <p class="bench-note">Vertices are taken in alphabetical or numeric order in the first pass. The sub-label under each vertex shows d/f from pass 1.</p>
+  <div class="inputs">
+    <label class="grow">Edges (u → v)<textarea id="sc-e">a b
+b c
+c a
+b d
+d e
+e f
+f d
+g f
+g h
+h g</textarea></label>
+    <div style="display:flex;flex-direction:column;gap:8px"><label>Start pass 1 at<input id="sc-s" value="a" style="width:80px"></label><button class="btn pri run">Run</button></div>
+  </div>
+  <div class="player"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="0"><p>In the second pass of Kosaraju's algorithm, the DFS is run on</p>
+<div class="opts"><button>Gᵀ, in decreasing order of finishing time from pass 1</button><button>G, in increasing order of finishing time</button><button>Gᵀ, in alphabetical order</button><button>G, from the same start vertex</button></div>
+<p class="why">Both details matter: the transposed graph, and the decreasing finish order.</p></div>
+<div class="mcq" data-answer="3"><p>A DAG with 6 vertices has how many SCCs?</p>
+<div class="opts"><button>1</button><button>0</button><button>It depends on the edges</button><button>6</button></div>
+<p class="why">With no cycles, no two vertices reach each other, so every vertex is its own SCC.</p></div>
+</section>
+</section>
+
+<!-- ============ MERGE SORT ============ -->
+<section class="topic" id="mergesort" data-mod="2" data-title="Divide &amp; conquer, merge sort">
+<header>
+  <h1>Divide and conquer, and merge sort</h1>
+  <p class="lede">Split the problem into smaller copies of itself, solve those recursively, then combine their answers. Merge sort is the cleanest example.</p>
+</header>
+<h2>Control abstraction</h2>
+<p>A control abstraction is the skeleton every algorithm of a design strategy follows, with the problem-specific parts left as named functions.</p>
+<pre class="code"><span class="k">Algorithm</span> DAndC(P)
+{
+    <span class="k">if</span> Small(P) <span class="k">then</span> <span class="k">return</span> S(P);          <span class="c">// solve tiny instances directly</span>
+    <span class="k">else</span>
+    {
+        divide P into smaller instances P₁, P₂, …, Pₖ,  k ≥ 1;
+        apply DAndC to each of these subproblems;
+        <span class="k">return</span> Combine(DAndC(P₁), DAndC(P₂), …, DAndC(Pₖ));
+    }
+}</pre>
+<p>Its running time follows the same shape:</p>
+<div class="big-math">T(n) = g(n)                                   if n is small
+T(n) = T(n₁) + T(n₂) + … + T(nₖ) + f(n)      otherwise</div>
+<p>g(n) is the cost of solving a small instance directly, and f(n) is the cost of dividing and combining. With k equal parts of size n/b this becomes the Master-theorem form a·T(n/b) + f(n).</p>
+
+<h2>Merge sort</h2>
+<ul>
+  <li><b>Divide:</b> split the array into two halves at mid = ⌊(low + high)/2⌋.</li>
+  <li><b>Conquer:</b> sort each half recursively. A one-element array is already sorted (Small(P)).</li>
+  <li><b>Combine:</b> merge the two sorted halves into one sorted array.</li>
+</ul>
+<pre class="code"><span class="k">MERGE-SORT</span>(A, low, high):
+    <span class="k">if</span> low &lt; high:
+        mid = ⌊(low + high) / 2⌋
+        MERGE-SORT(A, low, mid)
+        MERGE-SORT(A, mid + 1, high)
+        MERGE(A, low, mid, high)
+
+<span class="k">MERGE</span>(A, low, mid, high):
+    i = low; j = mid + 1; k = low           <span class="c">// B is a temporary array</span>
+    <span class="k">while</span> i ≤ mid <span class="k">and</span> j ≤ high:
+        <span class="k">if</span> A[i] ≤ A[j]: B[k] = A[i]; i++
+        <span class="k">else</span>:           B[k] = A[j]; j++
+        k++
+    copy any leftover A[i..mid] or A[j..high] into B
+    copy B[low..high] back into A[low..high]</pre>
+<div class="idea"><b>How many comparisons does MERGE make?</b><p>Each comparison sends exactly one element to the output. Once one list runs out, the rest of the other list is copied with no comparisons. Merging lists of sizes m and n therefore needs <b>at most m + n − 1</b> comparisons, and as few as <b>min(m, n)</b> when every element of the shorter list is smaller than everything in the longer one.</p></div>
+
+<div class="bench" id="w-msort">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Merge sort tree</h3></div>
+  <p class="bench-note">The top half splits, the bottom half merges back. Step through to watch each level appear.</p>
+  <div class="inputs">
+    <label class="grow">Array<input id="ms2-a" value="38 16 72 5 49 23 61 9"></label>
+    <button class="btn pri run">Run</button>
+  </div>
+  <div class="player"></div>
+</div>
+
+<div class="bench" id="w-merge">
+  <div class="bench-top"><span class="tag">Try it</span><h3>One MERGE, comparison by comparison</h3></div>
+  <div class="inputs">
+    <label class="grow">Left (sorted)<input id="mg-a" value="4 11 19 30"></label>
+    <label class="grow">Right (sorted)<input id="mg-b" value="7 8 25 41 50"></label>
+    <button class="btn pri run">Run</button>
+  </div>
+  <div class="player"></div>
+</div>
+
+<h2>Analysis</h2>
+<div class="big-math">T(n) = 2T(n/2) + cn,   T(1) = c
+     = Θ(n log n)       (Master case 2, or the recursion tree:
+                          log₂n levels, each costing cn)</div>
+<ul>
+  <li>Best, worst and average case are all <b>Θ(n log n)</b>: merge sort splits the same way no matter what the data is.</li>
+  <li>Space: <b>Θ(n)</b> for the temporary array B, plus O(log n) recursion stack. It is not in-place.</li>
+  <li>It is <b>stable</b>: using ≤ in MERGE keeps equal keys in their original order.</li>
+</ul>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="2"><p>Merge sort on an already-sorted array takes</p>
+<div class="opts"><button>Θ(n)</button><button>Θ(n²)</button><button>Θ(n log n)</button><button>Θ(log n)</button></div>
+<p class="why">It still splits all the way down and merges every level. Merges may use fewer comparisons, but each level still copies n elements.</p></div>
+<div class="mcq" data-answer="0"><p>Which part of DAndC does MERGE play in merge sort?</p>
+<div class="opts"><button>Combine</button><button>Small(P)</button><button>Divide</button><button>S(P)</button></div>
+<p class="why">Dividing is trivial (compute mid); all the work is in combining.</p></div>
+</section>
+</section>
+
+<!-- ============ STRASSEN ============ -->
+<section class="topic" id="strassen" data-mod="2" data-title="Strassen's multiplication">
+<header>
+  <h1>Strassen's matrix multiplication</h1>
+  <p class="lede">The schoolbook method multiplies two n×n matrices with n³ scalar multiplications. Strassen found a way to multiply 2×2 blocks with 7 multiplications instead of 8, and applying that recursively beats n³.</p>
+</header>
+
+<h2>Plain divide and conquer gains nothing</h2>
+<p>Split each n×n matrix into four n/2 × n/2 blocks:</p>
+<div class="big-math">[ C11 C12 ]   [ A11 A12 ] [ B11 B12 ]
+[ C21 C22 ] = [ A21 A22 ] [ B21 B22 ]
+
+C11 = A11·B11 + A12·B21        C12 = A11·B12 + A12·B22
+C21 = A21·B11 + A22·B21        C22 = A21·B12 + A22·B22</div>
+<p>That is 8 block multiplications and 4 block additions (each addition costs (n/2)² = Θ(n²)):</p>
+<div class="big-math">T(n) = 8T(n/2) + Θ(n²)   →   n^(log₂8) = n³ dominates   →   Θ(n³)</div>
+<p>Same as the ordinary triple loop. The recursion only pays off if we cut down the <b>number</b> of multiplications, since that number (a) sits in the exponent log₂a.</p>
+
+<h2>Strassen's seven products</h2>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Product</th><th>Formula</th></tr>
+<tr><td>P</td><td>(A11 + A22)(B11 + B22)</td></tr>
+<tr><td>Q</td><td>(A21 + A22) B11</td></tr>
+<tr><td>R</td><td>A11 (B12 − B22)</td></tr>
+<tr><td>S</td><td>A22 (B21 − B11)</td></tr>
+<tr><td>T</td><td>(A11 + A12) B22</td></tr>
+<tr><td>U</td><td>(A21 − A11)(B11 + B12)</td></tr>
+<tr><td>V</td><td>(A12 − A22)(B21 + B22)</td></tr>
+</table></div>
+<div class="big-math">C11 = P + S − T + V            C12 = R + T
+C21 = Q + S                    C22 = P + R − Q + U</div>
+<div class="idea"><b>Remembering them</b>
+<p>P is the only one with two sums, using both diagonals. Q and T use a <b>row</b> of A (bottom, top) times one corner of B; R and S use one corner of A times a <b>column difference</b> of B. U and V are the two "difference × sum" terms: U fixes C22, V fixes C11. C12 and C21 are each a sum of two products; the diagonal entries C11 and C22 each use four.</p>
+<p>CLRS names them M1…M7 (or P1…P7) with different but equivalent formulas. Any correct set is accepted.</p></div>
+
+<h2>Analysis</h2>
+<div class="big-math">T(n) = 7T(n/2) + 18·(n/2)²        (7 multiplications, 18 additions/subtractions)
+a = 7, b = 2:  n^(log₂7) ≈ n^2.807 dominates n²   →   Master case 1
+T(n) = Θ(n^(log₂7)) ≈ Θ(n^2.81)</div>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Method</th><th>Multiplications for 2×2</th><th>Recurrence</th><th>Time</th></tr>
+<tr><td>Ordinary (triple loop)</td><td>8</td><td>–</td><td>Θ(n³)</td></tr>
+<tr><td>Plain divide and conquer</td><td>8</td><td>8T(n/2) + Θ(n²)</td><td>Θ(n³)</td></tr>
+<tr><td>Strassen</td><td>7</td><td>7T(n/2) + Θ(n²)</td><td>Θ(n^2.81)</td></tr>
+</table></div>
+<p>Trade-offs: Strassen needs more additions and extra memory for temporaries, has larger constants, and is less numerically stable with floating point. It wins only for large matrices; in practice the recursion stops at a cutoff size and switches to the normal method. If n is not a power of 2, pad the matrices with zeros.</p>
+
+<div class="bench" id="w-strassen">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Strassen calculator (2×2)</h3></div>
+  <p class="bench-note">Enter each matrix as four numbers, row by row. The result is checked against ordinary multiplication.</p>
+  <div class="inputs">
+    <label>A (a11 a12 a21 a22)<input id="st-a" value="2 5 3 4"></label>
+    <label>B (b11 b12 b21 b22)<input id="st-b" value="1 6 7 2"></label>
+    <button class="btn pri run">Compute</button>
+  </div>
+  <div class="out"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>If someone found a way to multiply 2×2 blocks with 6 multiplications, the time would be</p>
+<div class="opts"><button>Θ(n³)</button><button>Θ(n^(log₂6)) ≈ Θ(n^2.58)</button><button>Θ(n² log n)</button><button>Θ(n^2.81)</button></div>
+<p class="why">T(n) = 6T(n/2) + Θ(n²) gives n^(log₂6) by case 1.</p></div>
+<div class="mcq" data-answer="3"><p>C12 in Strassen's method equals</p>
+<div class="opts"><button>P + S − T + V</button><button>Q + S</button><button>P + R − Q + U</button><button>R + T</button></div>
+<p class="why">R + T = A11(B12 − B22) + (A11 + A12)B22 = A11B12 + A12B22.</p></div>
+</section>
+</section>

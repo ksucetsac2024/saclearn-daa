@@ -1,0 +1,282 @@
+<section class="topic" id="mock-test" data-mod="0" data-title="DAA Mock Test (KTU S5)">
+<header>
+  <h1>PCCST502 · DAA Model Exam &amp; Mock Test</h1>
+  <p class="lede">Comprehensive KTU S5 exam preparation aligned with the 2024 scheme pattern: Part A (24 marks) + Part B (36 marks). Includes step-by-step marking schemes and an interactive timed quiz.</p>
+</header>
+
+<div class="mt-header-card">
+  <div class="mt-badge-row">
+    <span class="tag">KTU Scheme 2024</span>
+    <span class="tag see">60 Marks Total</span>
+    <span class="tag see">Duration: 2.5 Hours</span>
+    <span class="tag see">Pass Mark: 24/60</span>
+  </div>
+  <div class="mt-tabs">
+    <button class="mt-tab on" data-view="mqp">KTU Model Paper &amp; Marking Schemes</button>
+    <button class="mt-tab" data-view="quiz">Interactive Timed Quiz (20 Qs)</button>
+  </div>
+</div>
+
+<div id="mt-mqp-view">
+  <div class="mt-sec-head">
+    <h2>PART A · Short Answer Questions</h2>
+    <span class="mt-marks">8 Questions × 3 Marks = 24 Marks (All Compulsory)</span>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q1 · Module 1</span>
+      <span class="mt-q-pts">3 Marks</span>
+    </div>
+    <p><b>Define Big-O and Big-Omega notations with their formal mathematical definitions.</b></p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <p><b>Big-O Notation:</b> <span class="math">f(n) = O(g(n))</span> if there exist positive constants <span class="math">c &gt; 0</span> and <span class="math">n<sub>0</sub> ≥ 1</span> such that <span class="math">0 ≤ f(n) ≤ c·g(n)</span> for all <span class="math">n ≥ n<sub>0</sub></span>. Represents an asymptotic upper bound.</p>
+        <p><b>Big-Omega Notation:</b> <span class="math">f(n) = Ω(g(n))</span> if there exist positive constants <span class="math">c &gt; 0</span> and <span class="math">n<sub>0</sub> ≥ 1</span> such that <span class="math">0 ≤ c·g(n) ≤ f(n)</span> for all <span class="math">n ≥ n<sub>0</sub></span>. Represents an asymptotic lower bound.</p>
+        <div class="formula"><b>Marking Scheme:</b> Definition and inequality for Big-O: 1.5 Marks; Definition and inequality for Big-Omega: 1.5 Marks.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q2 · Module 1</span>
+      <span class="mt-q-pts">3 Marks</span>
+    </div>
+    <p><b>Solve the recurrence <span class="math">T(n) = 4T(n/2) + n²</span> using the Master Theorem.</b></p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <p>Given <span class="math">a = 4, b = 2, f(n) = n²</span>.</p>
+        <p>Compute <span class="math">n<sup>log<sub>b</sub> a</sup> = n<sup>log<sub>2</sub> 4</sup> = n²</span>.</p>
+        <p>Compare <span class="math">f(n) = n²</span> with <span class="math">n<sup>log<sub>b</sub> a</sup> = n²</span>. Here <span class="math">f(n) = Θ(n<sup>log<sub>b</sub> a</sup> log<sup>k</sup> n)</span> with <span class="math">k = 0</span>.</p>
+        <p>By <b>Master Theorem Case 2</b>, <span class="math">T(n) = Θ(n<sup>log<sub>b</sub> a</sup> log<sup>k+1</sup> n) = Θ(n² log n)</span>.</p>
+        <div class="formula"><b>Marking Scheme:</b> Identification of a, b, f(n): 1 Mark; Computing <span class="math">n<sup>log<sub>b</sub> a</sup></span>: 1 Mark; Final answer <span class="math">Θ(n² log n)</span>: 1 Mark.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q3 · Module 2</span>
+      <span class="mt-q-pts">3 Marks</span>
+    </div>
+    <p><b>Explain the role of union by rank and path compression in disjoint sets.</b></p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <p><b>Union by rank:</b> Attaches the shorter tree under the root of the taller tree during union, keeping the tree height bounded by <span class="math">O(log n)</span>.</p>
+        <p><b>Path compression:</b> During <code>Find(x)</code>, flattens the tree structure by making every visited node point directly to the set root.</p>
+        <p>Combined, any sequence of <span class="math">m</span> operations takes nearly linear time <span class="math">O(m·α(n))</span>, where <span class="math">α</span> is the inverse Ackermann function.</p>
+        <div class="formula"><b>Marking Scheme:</b> Union by rank explanation: 1 Mark; Path compression explanation: 1 Mark; Resulting amortized complexity: 1 Mark.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q4 · Module 2</span>
+      <span class="mt-q-pts">3 Marks</span>
+    </div>
+    <p><b>How does Strassen's matrix multiplication achieve a lower time complexity than the naive method?</b></p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <p>Standard matrix multiplication divides matrices into 8 sub-multiplications of size <span class="math">n/2</span>: <span class="math">T(n) = 8T(n/2) + O(n²) ⇒ O(n³)</span>.</p>
+        <p>Strassen uses algebraic identities to compute <b>7 multiplications</b> and 18 additions: <span class="math">T(n) = 7T(n/2) + O(n²)</span>.</p>
+        <p>By Master theorem, <span class="math">n<sup>log<sub>2</sub> 7</sup> ≈ n<sup>2.807</sup></span>, yielding <span class="math">Θ(n<sup>2.807</sup>)</span> time complexity.</p>
+        <div class="formula"><b>Marking Scheme:</b> 7 multiplications vs 8: 1 Mark; Recurrence formulation: 1 Mark; Final complexity <span class="math">O(n<sup>2.807</sup>)</span>: 1 Mark.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q5 · Module 3</span>
+      <span class="mt-q-pts">3 Marks</span>
+    </div>
+    <p><b>State the two essential properties a problem must possess to be solved by Dynamic Programming.</b></p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <p><b>1. Optimal Substructure:</b> An optimal solution to the problem contains within it optimal solutions to subproblems (e.g. shortest path subpath property).</p>
+        <p><b>2. Overlapping Subproblems:</b> The recursive algorithm visits the same subproblems repeatedly rather than generating new subproblems at each step, allowing memoization or bottom-up tabulation to save redundant work.</p>
+        <div class="formula"><b>Marking Scheme:</b> Optimal substructure definition: 1.5 Marks; Overlapping subproblems definition: 1.5 Marks.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q6 · Module 3</span>
+      <span class="mt-q-pts">3 Marks</span>
+    </div>
+    <p><b>Why does Dijkstra's algorithm fail on graphs with negative weight edges?</b></p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <p>Dijkstra operates on a <b>greedy assumption</b>: once a vertex is marked finalized (extracted from the priority queue with minimum distance), its shortest path distance is permanently settled.</p>
+        <p>A subsequent negative weight edge could provide a shorter path to an already finalized vertex. Because Dijkstra never re-evaluates finalized nodes, it computes incorrect distances.</p>
+        <div class="formula"><b>Marking Scheme:</b> Mention of greedy finalization: 1.5 Marks; Counter-example or explanation of negative update bypass: 1.5 Marks.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q7 · Module 4</span>
+      <span class="mt-q-pts">3 Marks</span>
+    </div>
+    <p><b>Differentiate between Backtracking and Branch &amp; Bound.</b></p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <ul>
+          <li><b>Search Strategy:</b> Backtracking uses Depth-First Search (DFS) with a recursion stack. Branch &amp; Bound uses Breadth-First Search (BFS) or Least-Cost search (LCBB) with a priority queue.</li>
+          <li><b>Application:</b> Backtracking is typically used for constraint satisfaction and decision problems (N-Queens, Sudoku). Branch &amp; Bound is used for optimization problems (0/1 Knapsack, TSP).</li>
+          <li><b>Pruning:</b> Backtracking uses bounding functions to stop dead branches. Branch &amp; Bound computes estimated lower/upper bounds to prune subtrees exceeding the current best solution.</li>
+        </ul>
+        <div class="formula"><b>Marking Scheme:</b> 3 valid points of differentiation: 1 Mark each.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q8 · Module 4</span>
+      <span class="mt-q-pts">3 Marks</span>
+    </div>
+    <p><b>Define the complexity class NP and NP-Complete.</b></p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <p><b>NP (Nondeterministic Polynomial time):</b> Class of decision problems for which a proposed solution certificate can be verified in polynomial time by a deterministic algorithm.</p>
+        <p><b>NP-Complete:</b> A problem <span class="math">X</span> is NP-Complete if: (1) <span class="math">X ∈ NP</span>, and (2) Every problem in NP is polynomial-time reducible to <span class="math">X</span> (<span class="math">X</span> is NP-Hard).</p>
+        <div class="formula"><b>Marking Scheme:</b> NP definition: 1.5 Marks; NP-Complete dual conditions: 1.5 Marks.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="mt-sec-head" style="margin-top:36px">
+    <h2>PART B · Comprehensive Problems</h2>
+    <span class="mt-marks">One 9-Mark Question per Module (36 Marks Total)</span>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q9 · Module 1 (9 Marks)</span>
+      <span class="mt-q-pts">Part B · Module 1</span>
+    </div>
+    <p><b>(a)</b> Trace the construction of an AVL tree by inserting keys: <code>10, 20, 30, 40, 50, 25</code>. Identify the rotations performed at each step. (6 Marks)<br>
+    <b>(b)</b> Prove that the height of an AVL tree with <span class="math">n</span> nodes is <span class="math">O(log n)</span>. (3 Marks)</p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <p><b>Part (a) Rotations:</b></p>
+        <ol>
+          <li>Insert 10, 20: Balanced.</li>
+          <li>Insert 30: 10 has balance factor -2 (RR imbalance) <span class="math">⇒</span> Left rotate at 10. Root is 20, children 10 and 30.</li>
+          <li>Insert 40: Balanced.</li>
+          <li>Insert 50: 30 has balance factor -2 (RR imbalance) <span class="math">⇒</span> Left rotate at 30. Subtree root 40, children 30 and 50.</li>
+          <li>Insert 25: Root 20 has balance factor -2. Right child 40 has left child 30 (RL imbalance) <span class="math">⇒</span> Right-Left double rotation. Final tree root 30, left child 20 (with children 10, 25), right child 40 (with child 50).</li>
+        </ol>
+        <p><b>Part (b) Height Proof:</b></p>
+        <p>Let <span class="math">N(h)</span> be min nodes in AVL tree of height <span class="math">h</span>. <span class="math">N(h) = N(h - 1) + N(h - 2) + 1</span>. Since <span class="math">N(h) &gt; F<sub>h</sub> ≈ φ<sup>h</sup> / √5</span> where <span class="math">φ = 1.618</span>, taking logs yields <span class="math">h &lt; 1.44 log<sub>2</sub> n</span>. Thus <span class="math">h = O(log n)</span>.</p>
+        <div class="formula"><b>Marking Scheme:</b> Correct rotations and tree states: 6 Marks; Fibonacci recurrence and logarithmic height proof: 3 Marks.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q10 · Module 2 (9 Marks)</span>
+      <span class="mt-q-pts">Part B · Module 2</span>
+    </div>
+    <p><b>Explain Kosaraju's algorithm for finding Strongly Connected Components (SCC) of a directed graph. Trace it on a directed graph with vertices A, B, C, D, E and edges A→B, B→C, C→A, B→D, D→E, E→D.</b></p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <p><b>Kosaraju's Algorithm Steps:</b></p>
+        <ol>
+          <li>Run DFS on original graph <span class="math">G</span> and push vertices onto a stack ordered by finishing times.</li>
+          <li>Compute transpose graph <span class="math">G<sup>T</sup></span> by reversing all edge directions.</li>
+          <li>Pop vertices from stack. If unvisited in <span class="math">G<sup>T</sup></span>, start DFS from it; all reachable vertices form one SCC.</li>
+        </ol>
+        <p><b>Trace on Graph:</b></p>
+        <ul>
+          <li>Stack finish order (top to bottom): <code>A, B, C, D, E</code></li>
+          <li>Transpose edges: B→A, C→B, A→C, D→B, E→D, D→E</li>
+          <li>DFS 1 on <span class="math">G<sup>T</sup></span> from A visits: <code>{A, C, B}</code> <span class="math">⇒</span> <b>SCC 1: {A, B, C}</b></li>
+          <li>DFS 2 on <span class="math">G<sup>T</sup></span> from next unvisited (D) visits: <code>{D, E}</code> <span class="math">⇒</span> <b>SCC 2: {D, E}</b></li>
+        </ul>
+        <div class="formula"><b>Marking Scheme:</b> Algorithm steps: 3 Marks; Finishing time stack trace: 2 Marks; Graph transpose: 2 Marks; Final SCC identification: 2 Marks.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q11 · Module 3 (9 Marks)</span>
+      <span class="mt-q-pts">Part B · Module 3</span>
+    </div>
+    <p><b>Solve the Matrix Chain Multiplication problem for matrices with dimensions <span class="math">p = ⟨10, 20, 30, 40, 30⟩</span>. Construct the <span class="math">m</span> and <span class="math">s</span> tables and show the optimal parenthesization.</b></p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <p>Matrix dimensions: <span class="math">A<sub>1</sub>: 10 × 20</span>, <span class="math">A<sub>2</sub>: 20 × 30</span>, <span class="math">A<sub>3</sub>: 30 × 40</span>, <span class="math">A<sub>4</sub>: 40 × 30</span>.</p>
+        <p><b>Chain length 2:</b></p>
+        <ul>
+          <li><span class="math">m[1, 2] = 10 × 20 × 30 = 6000</span>, <span class="math">s[1, 2] = 1</span></li>
+          <li><span class="math">m[2, 3] = 20 × 30 × 40 = 24000</span>, <span class="math">s[2, 3] = 2</span></li>
+          <li><span class="math">m[3, 4] = 30 × 40 × 30 = 36000</span>, <span class="math">s[3, 4] = 3</span></li>
+        </ul>
+        <p><b>Chain length 3:</b></p>
+        <ul>
+          <li><span class="math">m[1, 3] = min(m[1, 1] + m[2, 3] + 10·20·40, m[1, 2] + m[3, 3] + 10·30·40) = min(32000, 18000) = 18000</span>, <span class="math">s[1, 3] = 2</span></li>
+          <li><span class="math">m[2, 4] = min(m[2, 2] + m[3, 4] + 20·30·30, m[2, 3] + m[4, 4] + 20·40·30) = min(54000, 48000) = 48000</span>, <span class="math">s[2, 4] = 3</span></li>
+        </ul>
+        <p><b>Chain length 4:</b></p>
+        <ul>
+          <li><span class="math">m[1, 4] = min(k=1: 66000, k=2: 30000, k=3: 36000) = 30000</span>, <span class="math">s[1, 4] = 2</span>.</li>
+        </ul>
+        <p><b>Optimal Parenthesization:</b> <span class="math">((A<sub>1</sub> A<sub>2</sub>)(A<sub>3</sub> A<sub>4</sub>))</span> with minimum scalar multiplications = <b>30,000</b>.</p>
+        <div class="formula"><b>Marking Scheme:</b> Recurrence formula: 2 Marks; Computation of m table: 4 Marks; Computation of s table: 2 Marks; Final parenthesization: 1 Mark.</div>
+      </div>
+    </details>
+  </div>
+
+  <div class="card mt-q-card">
+    <div class="mt-q-head">
+      <span class="mt-q-num">Q12 · Module 4 (9 Marks)</span>
+      <span class="mt-q-pts">Part B · Module 4</span>
+    </div>
+    <p><b>Prove that the Vertex Cover problem is NP-Complete by polynomial-time reducing the 3-SAT (or Clique) problem to it.</b></p>
+    <details class="reveal">
+      <summary>Show Model Solution &amp; Marking Scheme</summary>
+      <div class="mt-sol">
+        <p><b>Step 1: Prove Vertex Cover <span class="math">∈ NP</span></b></p>
+        <p>Given a certificate <span class="math">V' ⊆ V</span> with <span class="math">|V'| ≤ k</span>, verify that for every edge <span class="math">(u, v) ∈ E</span>, at least one of <span class="math">u ∈ V'</span> or <span class="math">v ∈ V'</span>. This verification takes <span class="math">O(V + E)</span> time, which is polynomial.</p>
+        <p><b>Step 2: Reduce Clique to Vertex Cover (<span class="math">Clique ≤<sub>p</sub> Vertex Cover</span>)</b></p>
+        <p>Given an instance of Clique <span class="math">⟨G = (V, E), k⟩</span>:</p>
+        <ol>
+          <li>Construct the complement graph <span class="math">Ḡ = (V, Ē)</span> where <span class="math">(u, v) ∈ Ē ⇔ (u, v) ∉ E</span>.</li>
+          <li>Set <span class="math">k' = |V| - k</span>. The transformed instance is <span class="math">⟨Ḡ, k'⟩</span>.</li>
+          <li>Construction takes <span class="math">O(V²)</span> polynomial time.</li>
+        </ol>
+        <p><b>Equivalence Proof:</b> <span class="math">V'</span> is a clique of size <span class="math">k</span> in <span class="math">G</span> <span class="math">⇔ V \setminus V'</span> is a vertex cover of size <span class="math">|V| - k</span> in <span class="math">Ḡ</span>.</p>
+        <div class="formula"><b>Marking Scheme:</b> NP verification proof: 2 Marks; Complement graph reduction construction: 3 Marks; Forward and backward equivalence proof: 4 Marks.</div>
+      </div>
+    </details>
+  </div>
+</div>
+
+<div id="mt-quiz-view" style="display:none">
+  <div class="mt-quiz-bar">
+    <div class="mt-timer">⏱ Time Remaining: <b id="mt-timer-val">30:00</b></div>
+    <div class="mt-score-disp">Score: <b id="mt-score-val">0</b> / 20</div>
+    <button class="btn pri" id="mt-submit-quiz-btn">Submit Quiz</button>
+  </div>
+  <div id="mt-quiz-list"></div>
+</div>
+</section>

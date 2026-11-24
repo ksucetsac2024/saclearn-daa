@@ -1,0 +1,589 @@
+<!-- ======================= MODULE 1 ======================= -->
+<section class="topic" id="basics" data-mod="1" data-title="Algorithms &amp; complexity">
+<header>
+  <h1>Algorithms and how we measure them</h1>
+  <p class="lede">Before comparing algorithms we need a ruler. This topic sets up that ruler: what counts as an algorithm, what we measure (time and space), and why one input can be fast while another is slow.</p>
+</header>
+
+<h2>What makes something an algorithm</h2>
+<p>An algorithm is a finite list of precise steps that turns an input into an output. A recipe that says "add salt to taste" is not quite an algorithm, because "to taste" is not precise. Every algorithm must have these five properties:</p>
+<div class="cols">
+  <div class="card"><h4>Input</h4><p>Zero or more values supplied from outside.</p></div>
+  <div class="card"><h4>Output</h4><p>At least one result. An algorithm that produces nothing is useless.</p></div>
+  <div class="card"><h4>Definiteness</h4><p>Each step is clear and has exactly one meaning. "Divide x by 0" or "pick a nice number" fail this.</p></div>
+  <div class="card"><h4>Finiteness</h4><p>It stops after a finite number of steps for every input. An infinite loop is not an algorithm.</p></div>
+  <div class="card"><h4>Effectiveness</h4><p>Each step is basic enough to be done exactly, by hand with pencil and paper if needed.</p></div>
+</div>
+
+<h3>Criteria for analysing an algorithm</h3>
+<p>Once an algorithm is correct, we judge it by:</p>
+<ul>
+  <li><b>Correctness</b>: gives the right output for every valid input.</li>
+  <li><b>Time efficiency</b>: how the number of steps grows as the input grows.</li>
+  <li><b>Space efficiency</b>: how much extra memory it needs.</li>
+  <li><b>Simplicity and clarity</b>: easier to verify and maintain.</li>
+  <li><b>Optimality</b>: whether a better algorithm can exist for the problem at all.</li>
+</ul>
+<div class="idea"><b>Two ways to measure</b>
+<p><b>A priori analysis</b> is done before running: count steps on paper and express them as a function of input size <span class="math">n</span>. It does not depend on the machine. <b>A posteriori analysis</b> (profiling) runs the program and measures actual seconds and bytes, which depend on the computer, compiler and language. This course is about a priori analysis.</p></div>
+
+<h2>Time complexity by counting steps</h2>
+<p>We count how many times each statement runs (its <b>frequency count</b>) and add them up. The input size <span class="math">n</span> is whatever grows: the number of array elements, the number of matrix rows, the number of vertices.</p>
+<pre class="code"><span class="k">Algorithm</span> Sum(A, n)
+1   s = 0
+2   <span class="k">for</span> i = 1 <span class="k">to</span> n
+3       s = s + A[i]
+4   <span class="k">return</span> s</pre>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Line</th><th>Cost per run</th><th>Times run</th><th>Total</th></tr>
+<tr><td>1</td><td>1</td><td>1</td><td>1</td></tr>
+<tr><td>2</td><td>1</td><td>n + 1 (the last test fails and exits)</td><td>n + 1</td></tr>
+<tr><td>3</td><td>1</td><td>n</td><td>n</td></tr>
+<tr><td>4</td><td>1</td><td>1</td><td>1</td></tr>
+<tr><th colspan="3">Total step count</th><th>2n + 3, which grows like n</th></tr>
+</table></div>
+<p>Notice the loop header runs <b>n + 1</b> times: n successful tests plus one failing test. For two nested loops of size n (like adding two n×n matrices) the inner body runs n·n times, so the count is about 2n² + 2n + 1, which grows like n².</p>
+
+<h2>Space complexity</h2>
+<p>Space complexity is the total memory an algorithm needs, written <span class="math">S(P) = c + S<sub>P</sub>(n)</span>:</p>
+<ul>
+  <li><b>Fixed part c</b>: the code, simple variables and constants. It does not change with n.</li>
+  <li><b>Variable part S<sub>P</sub>(n)</b>: memory that depends on the input, such as arrays created at run time and the <b>recursion stack</b>.</li>
+</ul>
+<div class="cols">
+  <div class="card"><h4>Iterative factorial</h4>
+<pre class="code" style="margin:6px 0">f = 1
+<span class="k">for</span> i = 2 <span class="k">to</span> n: f = f * i</pre>
+  <p>Only <code>f</code>, <code>i</code>, <code>n</code>: constant extra space, <b>O(1)</b>.</p></div>
+  <div class="card"><h4>Recursive factorial</h4>
+<pre class="code" style="margin:6px 0">Fact(n):
+  <span class="k">if</span> n ≤ 1 <span class="k">return</span> 1
+  <span class="k">return</span> n * Fact(n − 1)</pre>
+  <p>Fact(n) waits for Fact(n−1), which waits for Fact(n−2)… n frames sit on the stack at once: <b>O(n)</b> space.</p></div>
+</div>
+<figure>
+<svg viewBox="0 0 720 150" role="img" aria-label="Recursion stack for Fact(4): four frames stacked, each waiting for the one above">
+  <g font-size="13">
+    <rect class="soft-f line-s" x="20" y="105" width="130" height="30" rx="4" stroke-width="1.5"/><text x="85" y="125" text-anchor="middle" class="mono">Fact(4)</text>
+    <rect class="soft-f line-s" x="20" y="72" width="130" height="30" rx="4" stroke-width="1.5"/><text x="85" y="92" text-anchor="middle" class="mono">Fact(3)</text>
+    <rect class="soft-f line-s" x="20" y="39" width="130" height="30" rx="4" stroke-width="1.5"/><text x="85" y="59" text-anchor="middle" class="mono">Fact(2)</text>
+    <rect class="amb-f amb-s" x="20" y="6" width="130" height="30" rx="4" stroke-width="2"/><text x="85" y="26" text-anchor="middle" class="mono">Fact(1) = 1</text>
+    <path d="M 160 21 L 175 21" stroke="var(--amber)" stroke-width="1.5" stroke-linecap="round"/>
+    <text x="185" y="25" class="faint">top of stack: base case returns first</text>
+    <path d="M 160 120 L 175 120" stroke="var(--line-strong)" stroke-width="1.5" stroke-linecap="round"/>
+    <text x="185" y="124" class="faint">bottom: the first call, still waiting</text>
+    <line x1="430" y1="45" x2="430" y2="135" stroke="var(--line-strong)" stroke-width="1.5"/>
+    <line x1="424" y1="45" x2="430" y2="45" stroke="var(--line-strong)" stroke-width="1.5"/>
+    <line x1="424" y1="135" x2="430" y2="135" stroke="var(--line-strong)" stroke-width="1.5"/>
+    <text x="444" y="65" class="faint">depth of the stack = n</text>
+    <text x="444" y="90" class="faint">each frame stores n &amp; return address</text>
+    <text x="444" y="115" class="faint">so extra space grows like n</text>
+  </g>
+</svg>
+<figcaption>Recursion costs memory: every pending call keeps a stack frame until the calls above it return.</figcaption>
+</figure>
+
+<h2>Best, worst and average case</h2>
+<p>For many algorithms the step count depends on <i>which</i> input of size n you give, not just on n. Linear search is the standard example: look at A[1], A[2], … until you find the key.</p>
+<div class="cols">
+  <div class="card"><h4>Best case</h4><p>The key is at A[1]: <b>1 comparison</b>. The minimum over all inputs of size n. Θ(1).</p></div>
+  <div class="card"><h4>Worst case</h4><p>The key is at A[n] or absent: <b>n comparisons</b>. The maximum over all inputs. Θ(n). This is the guarantee we usually quote.</p></div>
+  <div class="card"><h4>Average case</h4><p>The expected count over a probability model of inputs. If the key is present and every position is equally likely: <span class="math">(1+2+…+n)/n = (n+1)/2</span>. Still Θ(n).</p></div>
+</div>
+<div class="formula"><b>Average case recipe</b>
+<p>Average = Σ (probability of input type) × (cost for that input type). Pick the probability model first (for example "each position equally likely"), then compute the expected count.</p></div>
+
+<div class="bench" id="w-lsearch">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Linear search counter</h3></div>
+  <p class="bench-note">Change the array or the key. The bar chart at the end shows the comparison count for the key at every position; its mean is (n+1)/2.</p>
+  <div class="inputs">
+    <label class="grow">Array<input id="ls-a" value="42 17 8 93 25 61 4 70"></label>
+    <label>Key<input id="ls-k" value="25" style="width:90px"></label>
+    <button class="btn pri run">Run</button>
+  </div>
+  <div class="player"></div>
+</div>
+
+<h3>Searching a binary search tree</h3>
+<p>The same three cases appear in a binary search tree (BST). Searching compares the key with a node and goes left or right, so the cost is the number of nodes on the path.</p>
+<figure class="fig-scroll" data-static="bstcases"></figure>
+<p>Best case: the key is at the root, <b>1 comparison</b>. Worst case: the tree is a straight chain (inserting already-sorted keys creates one), so the search walks all <b>n</b> nodes. In a balanced tree the height is about log₂n, so search is O(log n). Keeping the tree balanced is exactly what AVL trees do (last topic of this module).</p>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="2"><p>Which property does "repeat until the user is happy" violate?</p>
+<div class="opts"><button>Input</button><button>Effectiveness</button><button>Definiteness and finiteness</button><button>Output</button></div>
+<p class="why">"Happy" is not precisely defined (definiteness), and nothing guarantees the loop stops (finiteness).</p></div>
+<div class="mcq" data-answer="1"><p>How many times does the test in <code>for i = 1 to n</code> execute?</p>
+<div class="opts"><button>n</button><button>n + 1</button><button>n − 1</button><button>2n</button></div>
+<p class="why">n tests succeed and enter the body; the (n+1)-th test fails and ends the loop.</p></div>
+<div class="mcq" data-answer="3"><p>Recursive binary search on n elements uses how much stack space?</p>
+<div class="opts"><button>O(1)</button><button>O(n)</button><button>O(n log n)</button><button>O(log n)</button></div>
+<p class="why">Each call halves the range, so at most about log₂n calls are pending at once.</p></div>
+<div class="mcq" data-answer="0"><p>Which case is usually reported as "the" complexity of an algorithm?</p>
+<div class="opts"><button>Worst case, because it is a guarantee for every input</button><button>Best case, because it is the fastest</button><button>Average case, always</button><button>None of these</button></div>
+<p class="why">The worst case is an upper bound that holds for every input of size n.</p></div>
+</section>
+</section>
+
+<!-- ============ ASYMPTOTIC ============ -->
+<section class="topic" id="asymptotic" data-mod="1" data-title="Asymptotic notations">
+<header>
+  <h1>Asymptotic notations</h1>
+  <p class="lede">Exact step counts like 2n² + 2n + 1 are messy and machine-dependent. Asymptotic notation keeps only how fast a function grows for large n, which is what decides whether an algorithm scales.</p>
+</header>
+
+<h2>The idea: compare growth, ignore constants</h2>
+<p>For large n, the biggest term dominates. In 3n² + 5n + 100, at n = 1000 the n² term is 3,000,000 while 5n + 100 is only 5,100. So we say the function "grows like n²". Constant multipliers are dropped too, because a faster computer changes them anyway.</p>
+
+<figure class="fig-scroll" data-static="asym3"></figure>
+
+<h2>The five notations</h2>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Notation</th><th>Read as</th><th>Definition (there exist positive constants…)</th><th>Like</th></tr>
+<tr><td><b>f = O(g)</b></td><td>Big-oh: upper bound</td><td>c, n₀ such that <span class="math">0 ≤ f(n) ≤ c·g(n)</span> for all n ≥ n₀</td><td>f ≤ g</td></tr>
+<tr><td><b>f = Ω(g)</b></td><td>Big-omega: lower bound</td><td>c, n₀ such that <span class="math">0 ≤ c·g(n) ≤ f(n)</span> for all n ≥ n₀</td><td>f ≥ g</td></tr>
+<tr><td><b>f = Θ(g)</b></td><td>Theta: tight bound</td><td>c₁, c₂, n₀ such that <span class="math">c₁·g(n) ≤ f(n) ≤ c₂·g(n)</span> for all n ≥ n₀</td><td>f = g</td></tr>
+<tr><td><b>f = o(g)</b></td><td>Little-oh: strictly smaller</td><td>for <i>every</i> c &gt; 0 there is n₀ with <span class="math">f(n) &lt; c·g(n)</span>; equivalently f/g → 0</td><td>f &lt; g</td></tr>
+<tr><td><b>f = ω(g)</b></td><td>Little-omega: strictly larger</td><td>for <i>every</i> c &gt; 0 there is n₀ with <span class="math">f(n) &gt; c·g(n)</span>; equivalently f/g → ∞</td><td>f &gt; g</td></tr>
+</table></div>
+<div class="idea"><b>Big vs little</b><p>Big-O allows equality of growth (n² = O(n²) is true). Little-o forbids it (n² = o(n²) is false, but n = o(n²) is true). The difference is "for some c" versus "for every c".</p></div>
+
+<h3>Worked example: proving a Θ bound with constants</h3>
+<p>Show <span class="math">f(n) = 3n² + 4n + 7 = Θ(n²)</span>.</p>
+<div class="eg"><b>Upper bound (O)</b>
+<p>For n ≥ 1: 4n ≤ 4n² and 7 ≤ 7n². So f(n) ≤ 3n² + 4n² + 7n² = 14n². Take <b>c₂ = 14, n₀ = 1</b>.</p>
+<b style="margin-top:10px">Lower bound (Ω)</b>
+<p>For n ≥ 1, 4n + 7 &gt; 0, so f(n) ≥ 3n². Take <b>c₁ = 3</b>.</p>
+<p>Both hold for n ≥ 1, so 3n² ≤ f(n) ≤ 14n², and f(n) = Θ(n²).</p></div>
+
+<h3>Worked example: disproving a bound</h3>
+<p>Is <span class="math">n³ = O(n²)</span>? Suppose n³ ≤ c·n² for all n ≥ n₀. Divide by n²: n ≤ c for all n ≥ n₀. But n grows without limit, so no constant c works. <b>False.</b></p>
+<p>Is <span class="math">3ⁿ = O(2ⁿ)</span>? We would need (3/2)ⁿ ≤ c for all large n, but (3/2)ⁿ → ∞. <b>False.</b> Different exponential bases are different growth rates.</p>
+<p>Is <span class="math">log₂(n³) = Θ(log n)</span>? log(n³) = 3 log n, a constant times log n. <b>True.</b> Also log bases do not matter inside O: log₂n = log₁₀n / log₁₀2.</p>
+
+<h2>The limit test (fastest method)</h2>
+<div class="formula"><b>Compute L = lim<sub>n→∞</sub> f(n) / g(n)</b>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>L</th><th>Conclusion</th></tr>
+<tr><td>0</td><td>f = o(g), hence also f = O(g)</td></tr>
+<tr><td>a constant 0 &lt; L &lt; ∞</td><td>f = Θ(g) (so both O and Ω)</td></tr>
+<tr><td>∞</td><td>f = ω(g), hence also f = Ω(g)</td></tr>
+</table></div>
+<p>Use L'Hôpital's rule when both go to ∞. Example: n / n log n = 1/log n → 0, so n = o(n log n).</p></div>
+
+<h2>Properties</h2>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Property</th><th>Statement</th><th>Holds for</th></tr>
+<tr><td>Reflexivity</td><td>f = O(f)</td><td>O, Ω, Θ (not o, ω)</td></tr>
+<tr><td>Transitivity</td><td>f = O(g) and g = O(h) ⇒ f = O(h)</td><td>all five</td></tr>
+<tr><td>Symmetry</td><td>f = Θ(g) ⇔ g = Θ(f)</td><td>Θ only</td></tr>
+<tr><td>Transpose symmetry</td><td>f = O(g) ⇔ g = Ω(f);&nbsp; f = o(g) ⇔ g = ω(f)</td><td>pairs</td></tr>
+<tr><td>Sum rule</td><td>f₁ = O(g₁), f₂ = O(g₂) ⇒ f₁ + f₂ = O(max(g₁, g₂))</td><td>sequential code: the bigger part wins</td></tr>
+<tr><td>Product rule</td><td>f₁ = O(g₁), f₂ = O(g₂) ⇒ f₁·f₂ = O(g₁·g₂)</td><td>nested loops multiply</td></tr>
+<tr><td>Constants</td><td>c·f = O(f) for any constant c &gt; 0</td><td>drop multipliers</td></tr>
+<tr><td>Polynomials</td><td>a<sub>k</sub>n<sup>k</sup> + … + a₀ = Θ(n<sup>k</sup>) when a<sub>k</sub> &gt; 0</td><td>keep the top power</td></tr>
+</table></div>
+<div class="eg"><b>How a property proof goes (transitivity)</b>
+<p>f = O(g) gives c₁, n₁ with f(n) ≤ c₁g(n) for n ≥ n₁. g = O(h) gives c₂, n₂ with g(n) ≤ c₂h(n) for n ≥ n₂. For n ≥ max(n₁, n₂): f(n) ≤ c₁g(n) ≤ c₁c₂h(n). So c = c₁c₂ and n₀ = max(n₁, n₂) work. Every property proof follows this pattern: unpack the definitions, chain the inequalities, then name the new constants.</p></div>
+
+<h2>The growth ladder</h2>
+<div class="big-math">1  &lt;  log n  &lt;  √n  &lt;  n  &lt;  n log n  &lt;  n²  &lt;  n³  &lt;  2ⁿ  &lt;  3ⁿ  &lt;  n!  &lt;  nⁿ</div>
+<p>Useful facts: any power of log grows slower than any power of n (for example (log n)¹⁰ = o(n<sup>0.1</sup>)); any polynomial grows slower than any exponential (n¹⁰⁰ = o(1.01ⁿ)); and log(n!) = Θ(n log n).</p>
+
+<div class="bench" id="w-growth">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Growth race</h3></div>
+  <p class="bench-note">The y-axis is logarithmic (each gridline is ×10), otherwise 2ⁿ would flatten everything else. Drag n to see who overtakes whom.</p>
+  <div class="inputs">
+    <label class="grow">Largest n shown <input type="range" id="gr-n" min="4" max="60" value="30"></label>
+  </div>
+  <div class="out"></div>
+</div>
+
+<div class="bench" id="w-ratio">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Limit-test helper</h3></div>
+  <p class="bench-note">Pick f and g. The table shows f(n)/g(n) for growing n; watch whether it heads to 0, settles to a constant, or blows up.</p>
+  <div class="inputs">
+    <label>f(n)<select id="ra-f"></select></label>
+    <label>g(n)<select id="ra-g"></select></label>
+  </div>
+  <div class="out"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>Which statement is false?</p>
+<div class="opts"><button>n² = O(n³)</button><button>n² = o(n²)</button><button>n² = Ω(n log n)</button><button>100n = Θ(n)</button></div>
+<p class="why">n²/n² → 1, not 0, so n² is not little-o of itself.</p></div>
+<div class="mcq" data-answer="2"><p>Is 2ⁿ⁺³ = O(2ⁿ)?</p>
+<div class="opts"><button>No, the exponent is bigger</button><button>Only for n &lt; 3</button><button>Yes, 2ⁿ⁺³ = 8·2ⁿ, a constant times 2ⁿ</button><button>Cannot be decided</button></div>
+<p class="why">Adding a constant to the exponent multiplies by a constant. Multiplying the exponent (like 2³ⁿ) is a different story.</p></div>
+<div class="mcq" data-answer="0"><p>f(n) = n log n and g(n) = n^1.5. What is lim f/g?</p>
+<div class="opts"><button>0, so f = o(g)</button><button>a constant</button><button>∞</button><button>does not exist</button></div>
+<p class="why">f/g = log n / √n → 0: any power of n beats log n.</p></div>
+<div class="mcq" data-answer="3"><p>Which property lets you say "three loops in sequence of cost n, n², n log n is O(n²)"?</p>
+<div class="opts"><button>Product rule</button><button>Reflexivity</button><button>Transpose symmetry</button><button>Sum rule</button></div>
+<p class="why">Sequential parts add, and the sum is O(max) of the parts.</p></div>
+</section>
+</section>
+
+<!-- ============ LOOPS ============ -->
+<section class="topic" id="loops" data-mod="1" data-title="Counting loop costs">
+<header>
+  <h1>Time complexity of loops</h1>
+  <p class="lede">Most "find the complexity of this code" questions reduce to one skill: count how many times the innermost statement runs. Four patterns cover almost everything.</p>
+</header>
+
+<h2>The four patterns</h2>
+<div class="cols">
+  <div class="card"><h4>1. Add or subtract a constant</h4>
+<pre class="code" style="margin:6px 0">for (i = 1; i &lt;= n; i += 3)</pre>
+  <p>i takes n/3 values: <b>Θ(n)</b>.</p></div>
+  <div class="card"><h4>2. Multiply or divide</h4>
+<pre class="code" style="margin:6px 0">for (i = 1; i &lt;= n; i *= 2)</pre>
+  <p>i = 1, 2, 4, …, 2ᵏ ≤ n, so k ≤ log₂n: <b>Θ(log n)</b>. Dividing by 2 from n down to 1 is the same.</p></div>
+  <div class="card"><h4>3. Independent nested loops</h4>
+<pre class="code" style="margin:6px 0">for i = 1..n
+  for j = 1..m</pre>
+  <p>Multiply: <b>Θ(n·m)</b>.</p></div>
+  <div class="card"><h4>4. Inner loop depends on i</h4>
+<pre class="code" style="margin:6px 0">for i = 1..n
+  for j = 1..i</pre>
+  <p>Add up the inner count for each i: Σ i = n(n+1)/2 = <b>Θ(n²)</b>.</p></div>
+</div>
+<div class="formula"><b>Sums you will need</b>
+<p>Σ<sub>i=1..n</sub> 1 = n &nbsp;·&nbsp; Σ i = n(n+1)/2 &nbsp;·&nbsp; Σ i² = n(n+1)(2n+1)/6 &nbsp;·&nbsp; Σ<sub>i=0..k</sub> 2ⁱ = 2ᵏ⁺¹ − 1</p>
+<p>Harmonic: Σ<sub>i=1..n</sub> 1/i ≈ ln n &nbsp;·&nbsp; Σ<sub>i=1..n</sub> log i = log(n!) = Θ(n log n)</p></div>
+
+<h2>Worked examples</h2>
+<h3>Example 1: inner loop shrinks</h3>
+<pre class="code"><span class="k">for</span> (i = 1; i &lt;= n; i++)
+    <span class="k">for</span> (j = i; j &lt;= n; j++)
+        x++;</pre>
+<p>For i = 1 the inner loop runs n times, for i = 2 it runs n − 1 times, …, for i = n once. Total = n + (n−1) + … + 1 = n(n+1)/2 = <b>Θ(n²)</b>.</p>
+
+<h3>Example 2: logarithmic inner loop with base 3</h3>
+<pre class="code"><span class="k">for</span> (i = 1; i &lt;= n; i++)
+    <span class="k">for</span> (j = 1; j &lt; n; j = j * 3)
+        x++;</pre>
+<p>The inner loop does j = 1, 3, 9, … &lt; n, which is about log₃n iterations, and it does not depend on i. Total = n · log₃n = <b>Θ(n log n)</b>. (The base of the log is a constant factor.)</p>
+
+<h3>Example 3: a while loop whose step grows</h3>
+<pre class="code">i = 1; s = 1;
+<span class="k">while</span> (s &lt;= n) { i++; s = s + i; }</pre>
+<p>After k iterations s = 1 + 2 + … + (k+1) ≈ k²/2. The loop stops when k²/2 &gt; n, so k ≈ √(2n): <b>Θ(√n)</b>.</p>
+
+<h3>Example 4: halving outer loop, linear inner loop</h3>
+<pre class="code"><span class="k">for</span> (i = n; i &gt;= 1; i = i / 2)
+    <span class="k">for</span> (j = 1; j &lt;= i; j++)
+        x++;</pre>
+<p>The inner loop runs n, then n/2, n/4, …, 1 times. Total = n(1 + 1/2 + 1/4 + …) &lt; 2n = <b>Θ(n)</b>. A geometric series is bounded by a constant times its largest term. Two logarithmic-looking loops do <i>not</i> automatically give n log n.</p>
+
+<div class="trap"><b>Common mistakes</b>
+<p>Multiplying the two loop counts when the inner loop depends on i (Example 4 is Θ(n), not n log n). Forgetting that <code>j = j * 2</code> starting from j = 0 never moves (0 × 2 = 0), so such a loop never ends. Treating <code>j += i</code> as linear: Σ n/i = n·Hₙ ≈ n ln n.</p></div>
+
+<div class="bench" id="w-loops">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Loop builder</h3></div>
+  <p class="bench-note">Build a two-level loop. The tool counts exactly how many times <code>count++</code> runs, draws one row of dots per outer iteration (each dot is one inner iteration), and tests which growth rate fits.</p>
+  <div class="inputs">
+    <label>Outer loop<select id="lp-o">
+      <option value="inc">for (i = 1; i &lt;= n; i++)</option>
+      <option value="dbl">for (i = 1; i &lt;= n; i *= 2)</option>
+      <option value="half">for (i = n; i &gt;= 1; i /= 2)</option>
+    </select></label>
+    <label>Inner loop<select id="lp-i">
+      <option value="toN">for (j = 1; j &lt;= n; j++)</option>
+      <option value="toI" selected>for (j = 1; j &lt;= i; j++)</option>
+      <option value="iToN">for (j = i; j &lt;= n; j++)</option>
+      <option value="dblN">for (j = 1; j &lt;= n; j *= 2)</option>
+      <option value="dblI">for (j = 1; j &lt;= i; j *= 2)</option>
+      <option value="stepI">for (j = 1; j &lt;= n; j += i)</option>
+      <option value="sqrtI">for (j = 1; j * j &lt;= i; j++)</option>
+      <option value="none">(no inner loop)</option>
+    </select></label>
+    <label>n for the picture<input type="range" id="lp-n" min="4" max="40" value="16"></label>
+  </div>
+  <div class="out"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="2"><p><code>for (i = 1; i*i &lt;= n; i++) x++;</code> runs how many times?</p>
+<div class="opts"><button>Θ(log n)</button><button>Θ(n)</button><button>Θ(√n)</button><button>Θ(n²)</button></div>
+<p class="why">The loop stops when i² &gt; n, that is i &gt; √n.</p></div>
+<div class="mcq" data-answer="0"><p><code>for i=1..n { for j=1..n { … } } for k=1..n { … }</code></p>
+<div class="opts"><button>Θ(n²)</button><button>Θ(n³)</button><button>Θ(n² + n) which is different from Θ(n²)</button><button>Θ(n)</button></div>
+<p class="why">Sequential blocks add: n² + n = Θ(n²).</p></div>
+<div class="mcq" data-answer="3"><p><code>for (i = 2; i &lt;= n; i = i * i)</code> runs how many times?</p>
+<div class="opts"><button>Θ(log n)</button><button>Θ(√n)</button><button>Θ(n)</button><button>Θ(log log n)</button></div>
+<p class="why">i = 2, 4, 16, 256, … = 2^(2ᵏ). It stops when 2ᵏ &gt; log₂n, so k ≈ log log n.</p></div>
+</section>
+</section>
+
+<!-- ============ RECURRENCES 1 ============ -->
+<section class="topic" id="recurrences" data-mod="1" data-title="Recurrences: iteration &amp; substitution">
+<header>
+  <h1>Recurrences: iteration and substitution</h1>
+  <p class="lede">A recursive algorithm's running time is described by an equation that refers to itself, called a recurrence. Solving it gives a closed form like Θ(n log n).</p>
+</header>
+
+<h2>From code to recurrence</h2>
+<p>Write T(n) = (cost of the recursive calls) + (cost of the work done in this call).</p>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Algorithm</th><th>What one call does</th><th>Recurrence</th></tr>
+<tr><td>Binary search</td><td>one call on half the array + one comparison</td><td>T(n) = T(n/2) + c</td></tr>
+<tr><td>Merge sort</td><td>two calls on halves + merging n elements</td><td>T(n) = 2T(n/2) + cn</td></tr>
+<tr><td>Recursive factorial</td><td>one call on n − 1 + one multiplication</td><td>T(n) = T(n−1) + c</td></tr>
+<tr><td>Towers of Hanoi</td><td>two calls on n − 1 disks + one move</td><td>T(n) = 2T(n−1) + 1</td></tr>
+</table></div>
+<p>Every recurrence also needs a <b>base case</b>, such as T(1) = 1. Three solving methods are in the syllabus: iteration, substitution and recursion tree (next topic), plus the Master theorem shortcut.</p>
+
+<h2>Method 1: iteration (repeated substitution)</h2>
+<p>Expand the recurrence again and again until a pattern appears, write the k-th step in general, then choose k so that you hit the base case.</p>
+<h3>Example A: T(n) = T(n/2) + 1, T(1) = 1</h3>
+<div class="big-math">T(n) = T(n/2) + 1
+     = [T(n/4) + 1] + 1     = T(n/4) + 2
+     = [T(n/8) + 1] + 2     = T(n/8) + 3
+     …
+     = T(n/2ᵏ) + k                    ← general step k
+Put n/2ᵏ = 1, i.e. k = log₂n:
+T(n) = T(1) + log₂n = 1 + log₂n  =  Θ(log n)</div>
+
+<h3>Example B: T(n) = 2T(n−1) + 1, T(1) = 1 (Towers of Hanoi)</h3>
+<div class="big-math">T(n) = 2T(n−1) + 1
+     = 2[2T(n−2) + 1] + 1         = 4T(n−2) + 2 + 1
+     = 4[2T(n−3) + 1] + 2 + 1     = 8T(n−3) + 4 + 2 + 1
+     …
+     = 2ᵏ T(n−k) + (2ᵏ⁻¹ + … + 2 + 1)
+     = 2ᵏ T(n−k) + 2ᵏ − 1
+Put n − k = 1, i.e. k = n − 1:
+T(n) = 2ⁿ⁻¹·1 + 2ⁿ⁻¹ − 1 = 2ⁿ − 1  =  Θ(2ⁿ)</div>
+<div class="idea"><b>The pattern in iteration</b><p>Write at least three expansions so the general k-th term is obvious, check it against the first line, then solve "argument of T = base case" for k.</p></div>
+
+<h2>Method 2: substitution (guess and prove)</h2>
+<p>Guess the answer (from iteration, a recursion tree or experience), then prove it by mathematical induction, finding constants that make the inequality work.</p>
+<h3>Example C: show T(n) = 4T(n/2) + n is O(n²)</h3>
+<div class="eg"><b>First attempt fails</b>
+<p>Assume T(m) ≤ c·m² for all m &lt; n. Then T(n) ≤ 4c(n/2)² + n = cn² + n. We needed ≤ cn², but we got cn² <i>plus</i> n. The induction does not close, even though the guess is right.</p>
+<b style="margin-top:10px">Fix: subtract a lower-order term</b>
+<p>Assume the stronger claim T(m) ≤ c·m² − d·m. Then</p>
+<p class="mono">T(n) ≤ 4[c(n/2)² − d(n/2)] + n = cn² − 2dn + n = cn² − dn − (dn − n)</p>
+<p>This is ≤ cn² − dn whenever dn − n ≥ 0, i.e. <b>d ≥ 1</b>. Choose c large enough for the base case. So T(n) = O(n²).</p></div>
+<div class="trap"><b>The classic wrong proof</b><p>Writing "T(n) ≤ cn² + n = O(n²), done" is invalid. In an induction you must prove the <i>exact</i> form you assumed (≤ cn²) with the <i>same</i> constant c. "+ n" breaks it.</p></div>
+
+<h3>Changing variables</h3>
+<p>Recurrences with square roots become familiar after substituting m = log n.</p>
+<div class="big-math">T(n) = 2T(√n) + 1.          Let n = 2ᵐ, so √n = 2^(m/2).
+T(2ᵐ) = 2T(2^(m/2)) + 1.     Define S(m) = T(2ᵐ):
+S(m) = 2S(m/2) + 1  →  Θ(m)   (Master theorem, case 1)
+T(n) = S(log n) = Θ(log n)</div>
+
+<div class="bench" id="w-iter">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Iteration checker</h3></div>
+  <p class="bench-note">Pick a recurrence form and constants. The tool evaluates T(n) exactly from the recurrence and compares it with your closed form, so you can check an iteration answer numerically.</p>
+  <div class="inputs">
+    <label>Form<select id="it-form">
+      <option value="sub">T(n) = a·T(n − 1) + f(n)</option>
+      <option value="div">T(n) = a·T(n / b) + f(n)</option>
+    </select></label>
+    <label>a<input type="number" id="it-a" value="2" min="1" max="9"></label>
+    <label>b (divide form)<input type="number" id="it-b" value="2" min="2" max="9"></label>
+    <label>f(n)<select id="it-f">
+      <option value="1">1</option><option value="n">n</option><option value="n2">n²</option><option value="logn">log₂n</option>
+    </select></label>
+    <label>T(1)<input type="number" id="it-t1" value="1"></label>
+    <label>Your guess<select id="it-g">
+      <option value="2n">2ⁿ − 1</option><option value="n">n</option><option value="nlogn">n log₂n</option><option value="n2">n²</option><option value="n2h">n(n+1)/2</option><option value="logn">log₂n + 1</option><option value="n3">n³</option>
+    </select></label>
+  </div>
+  <div class="chips">
+    <button class="chip" data-fill='{"it-form":"sub","it-a":2,"it-f":"1","it-t1":1,"it-g":"2n"}'>Hanoi: 2T(n−1)+1</button>
+    <button class="chip" data-fill='{"it-form":"div","it-a":1,"it-b":2,"it-f":"1","it-t1":1,"it-g":"logn"}'>Binary search: T(n/2)+1</button>
+    <button class="chip" data-fill='{"it-form":"div","it-a":2,"it-b":2,"it-f":"n","it-t1":1,"it-g":"nlogn"}'>Merge sort: 2T(n/2)+n</button>
+  </div>
+  <div class="out"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>T(n) = T(n−1) + 1, T(1) = 1 solves to</p>
+<div class="opts"><button>Θ(log n)</button><button>Θ(n)</button><button>Θ(n²)</button><button>Θ(2ⁿ)</button></div>
+<p class="why">Unrolling gives T(n) = T(1) + (n−1) = n.</p></div>
+<div class="mcq" data-answer="2"><p>In the substitution method, why do we sometimes subtract a term like dn from the guess?</p>
+<div class="opts"><button>To make the answer smaller than the truth</button><button>Because the base case requires it</button><button>A stronger hypothesis can make the induction step close exactly</button><button>To change the growth rate</button></div>
+<p class="why">cn² − dn is still Θ(n²), but it absorbs the stray +n in the inductive step.</p></div>
+<div class="mcq" data-answer="0"><p>f(n) calls f(n/2) twice and adds the results. Recurrence?</p>
+<div class="opts"><button>T(n) = 2T(n/2) + c, which is Θ(n)</button><button>T(n) = T(n/2) + c, which is Θ(log n)</button><button>T(n) = 2T(n/2) + n</button><button>T(n) = T(n−2) + c</button></div>
+<p class="why">Two calls on n/2 plus constant work. Computing f(n/2) once and doubling it would give T(n/2) + c = Θ(log n).</p></div>
+</section>
+</section>
+
+<!-- ============ RECURRENCES 2 ============ -->
+<section class="topic" id="master" data-mod="1" data-title="Recursion tree &amp; Master theorem">
+<header>
+  <h1>Recursion trees and the Master theorem</h1>
+  <p class="lede">Draw every recursive call as a node holding the work it does outside its children. Add the work level by level. That picture also explains the Master theorem.</p>
+</header>
+
+<h2>Recursion tree for T(n) = 2T(n/2) + n</h2>
+<figure class="fig-scroll" data-static="rtree"></figure>
+<p>Each level holds total work n, and there are log₂n + 1 levels (from n down to size 1). Total = <b>n log₂n + n = Θ(n log n)</b>. The steps are always the same:</p>
+<ol>
+  <li>Draw the root with cost f(n), its a children with cost f(n/b), and so on.</li>
+  <li>Find the cost of level i: (number of nodes) × (cost per node) = aⁱ · f(n/bⁱ).</li>
+  <li>Find the height: the subproblem size n/bⁱ reaches 1 when i = log<sub>b</sub>n.</li>
+  <li>Count the leaves: a^(log<sub>b</sub>n) = n^(log<sub>b</sub>a), each costing T(1).</li>
+  <li>Add all levels (often a geometric series) plus the leaves.</li>
+</ol>
+
+<h3>Example: T(n) = 3T(n/4) + n²</h3>
+<div class="big-math">Level 0:  1 node  × n²            = n²
+Level 1:  3 nodes × (n/4)²        = (3/16) n²
+Level 2:  9 nodes × (n/16)²       = (3/16)² n²
+Level i:  3ⁱ nodes × (n/4ⁱ)²      = (3/16)ⁱ n²
+Height = log₄n,  leaves = 3^(log₄n) = n^(log₄3) ≈ n^0.79
+Sum ≤ n² · (1 + 3/16 + (3/16)² + …) = n² · 1/(1 − 3/16) = (16/13) n²
+T(n) = Θ(n²)       ← the root dominates; costs shrink level by level</div>
+
+<h3>Unequal splits: T(n) = T(n/4) + T(3n/4) + n</h3>
+<figure class="fig-scroll" data-static="rtree-uneven"></figure>
+<p>Every full level still sums to n (n/4 + 3n/4 = n). The leftmost path shrinks fastest and ends after log₄n levels; the rightmost path (always taking 3n/4) is the longest, with log<sub>4/3</sub>n levels. Below the shortest path some levels are incomplete and sum to less than n. So</p>
+<p class="mono">n · log₄n ≤ T(n) ≤ n · log<sub>4/3</sub>n &nbsp;⇒&nbsp; T(n) = Θ(n log n)</p>
+
+<h2>Master theorem</h2>
+<p>For recurrences of the form <span class="math">T(n) = a·T(n/b) + f(n)</span> with constants a ≥ 1, b &gt; 1, compare f(n) against <span class="math">n^(log_b a)</span>, which is the number of leaves (the total cost of the bottom level).</p>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Case</th><th>Condition</th><th>Result</th><th>What the tree looks like</th></tr>
+<tr><td>1</td><td>f(n) = O(n^(log<sub>b</sub>a − ε)) for some ε &gt; 0 (f is polynomially smaller)</td><td>Θ(n^(log<sub>b</sub>a))</td><td>level costs grow downward; leaves dominate</td></tr>
+<tr><td>2</td><td>f(n) = Θ(n^(log<sub>b</sub>a) · logᵏn), k ≥ 0</td><td>Θ(n^(log<sub>b</sub>a) · logᵏ⁺¹n)</td><td>every level costs about the same; multiply by the height</td></tr>
+<tr><td>3</td><td>f(n) = Ω(n^(log<sub>b</sub>a + ε)) for some ε &gt; 0, <b>and</b> a·f(n/b) ≤ c·f(n) for some c &lt; 1 (regularity)</td><td>Θ(f(n))</td><td>level costs shrink downward; root dominates</td></tr>
+</table></div>
+<div class="formula"><b>Simplified form for f(n) = Θ(nᵏ logᵖ n)</b>
+<p>Let x = log<sub>b</sub>a.</p>
+<p>• If x &gt; k: T(n) = Θ(nˣ).</p>
+<p>• If x = k: p &gt; −1 ⇒ Θ(nᵏ logᵖ⁺¹ n); p = −1 ⇒ Θ(nᵏ log log n); p &lt; −1 ⇒ Θ(nᵏ).</p>
+<p>• If x &lt; k: Θ(nᵏ logᵖ n), i.e. Θ(f(n)).</p>
+<p>The p &lt; 0 rows come from an extended version. The standard CLRS theorem only covers k ≥ 0 in case 2, so with f = n/log n it says "does not apply".</p></div>
+
+<h3>Worked examples</h3>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Recurrence</th><th>a, b, n^(log_b a)</th><th>f(n)</th><th>Case</th><th>Answer</th></tr>
+<tr><td>T(n) = 9T(n/3) + n</td><td>9, 3, n²</td><td>n is polynomially smaller</td><td>1</td><td>Θ(n²)</td></tr>
+<tr><td>T(n) = T(2n/3) + 1</td><td>1, 3/2, n⁰ = 1</td><td>1 matches</td><td>2 (k = 0)</td><td>Θ(log n)</td></tr>
+<tr><td>T(n) = 2T(n/4) + n</td><td>2, 4, n^0.5</td><td>n is polynomially larger; regularity: 2(n/4) = n/2 ≤ ½·n ✓</td><td>3</td><td>Θ(n)</td></tr>
+<tr><td>T(n) = 8T(n/2) + n²</td><td>8, 2, n³</td><td>n² is smaller</td><td>1</td><td>Θ(n³)</td></tr>
+<tr><td>T(n) = 2T(n/2) + n log n</td><td>2, 2, n</td><td>n·log¹n, matches with k = 1</td><td>2 (extended)</td><td>Θ(n log² n)</td></tr>
+</table></div>
+<div class="trap"><b>When the Master theorem does not apply</b>
+<p>• a &lt; 1 or b ≤ 1, or a, b not constants (e.g. T(n) = nT(n/2) + n).</p>
+<p>• Subtract-type recurrences like T(n) = T(n−1) + n. Use iteration.</p>
+<p>• f(n) is bigger or smaller than n^(log_b a) but not by a polynomial factor nᵉ, e.g. 2T(n/2) + n/log n, which falls in the gap between cases 1 and 2.</p>
+<p>• Case 3 with regularity failing (rare, e.g. f(n) with oscillating sin terms).</p>
+<p>• f(n) negative or not asymptotically positive.</p></div>
+
+<div class="bench" id="w-master">
+  <div class="bench-top"><span class="tag">Try it</span><h3>Recurrence lab: T(n) = a·T(n/b) + nᵏ·logᵖn</h3></div>
+  <p class="bench-note">The bars show the total work at each level of the recursion tree for n = b¹⁰. Growing bars mean the leaves dominate (case 1), flat bars mean every level matters (case 2), and shrinking bars mean the root dominates (case 3).</p>
+  <div class="inputs">
+    <label>a<input type="number" id="ms-a" value="3" min="1" step="1"></label>
+    <label>b<input type="number" id="ms-b" value="2" min="1.1" step="0.5"></label>
+    <label>k (power of n)<input type="number" id="ms-k" value="1" step="0.5"></label>
+    <label>p (power of log n)<input type="number" id="ms-p" value="0" step="1"></label>
+  </div>
+  <div class="chips">
+    <button class="chip" data-fill='{"ms-a":2,"ms-b":2,"ms-k":1,"ms-p":0}'>2T(n/2)+n</button>
+    <button class="chip" data-fill='{"ms-a":7,"ms-b":2,"ms-k":2,"ms-p":0}'>7T(n/2)+n² (Strassen)</button>
+    <button class="chip" data-fill='{"ms-a":1,"ms-b":2,"ms-k":0,"ms-p":0}'>T(n/2)+1</button>
+    <button class="chip" data-fill='{"ms-a":2,"ms-b":4,"ms-k":1,"ms-p":0}'>2T(n/4)+n</button>
+    <button class="chip" data-fill='{"ms-a":4,"ms-b":2,"ms-k":2,"ms-p":1}'>4T(n/2)+n² log n</button>
+  </div>
+  <div class="out"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="2"><p>T(n) = 4T(n/2) + n³. Which case and answer?</p>
+<div class="opts"><button>Case 1, Θ(n²)</button><button>Case 2, Θ(n³ log n)</button><button>Case 3, Θ(n³)</button><button>Master theorem does not apply</button></div>
+<p class="why">n^(log₂4) = n². f = n³ is polynomially larger, and 4(n/2)³ = n³/2 ≤ ½n³ satisfies regularity.</p></div>
+<div class="mcq" data-answer="0"><p>In a recursion tree for aT(n/b)+f(n), the number of leaves is</p>
+<div class="opts"><button>n^(log_b a)</button><button>log_b n</button><button>a·b</button><button>n/b</button></div>
+<p class="why">The height is log_b n and the tree branches a ways at each level: a^(log_b n) = n^(log_b a).</p></div>
+<div class="mcq" data-answer="3"><p>Why can't the Master theorem solve T(n) = 2T(n/2) + n/log n directly?</p>
+<div class="opts"><button>a is too small</button><button>b is not an integer</button><button>f(n) is negative</button><button>n/log n is smaller than n, but not by a polynomial factor nᵉ</button></div>
+<p class="why">n / (n/log n) = log n, which is smaller than every nᵉ. It falls between case 1 and case 2.</p></div>
+</section>
+</section>
+
+<!-- ============ AVL ============ -->
+<section class="topic" id="avl" data-mod="1" data-title="AVL trees">
+<header>
+  <h1>AVL trees</h1>
+  <p class="lede">A binary search tree is fast only while it stays bushy. An AVL tree checks its balance after every insertion and deletion and repairs it with rotations, so the height stays O(log n).</p>
+</header>
+
+<h2>Balance factor</h2>
+<p>For every node: <span class="math">BF = height(left subtree) − height(right subtree)</span>, where an empty subtree has height 0 (some books use −1; the differences are what matter). An AVL tree requires <b>BF ∈ {−1, 0, +1}</b> at every node. A node with BF = +2 is too heavy on the left; −2 is too heavy on the right.</p>
+<div class="idea"><b>Why the height is O(log n)</b><p>The thinnest AVL tree of height h has N(h) = N(h−1) + N(h−2) + 1 nodes, a Fibonacci-like growth, so N(h) grows like 1.618ʰ. That means h ≤ about 1.44 log₂n. Search, insert and delete are all <b>O(log n)</b>.</p></div>
+
+<h2>The four rotations</h2>
+<p>After inserting a key, walk up from the new node. The first node with |BF| = 2 is the <b>pivot z</b>. Look at the first two steps from z down toward the new node. Those two steps name the case.</p>
+<figure class="fig-scroll" data-static="avl-rot"></figure>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>Case</th><th>New node went into…</th><th>BF of z, of its child</th><th>Fix</th></tr>
+<tr><td><b>LL</b></td><td>left subtree of z's left child</td><td>+2, +1</td><td>single <b>right</b> rotation at z</td></tr>
+<tr><td><b>RR</b></td><td>right subtree of z's right child</td><td>−2, −1</td><td>single <b>left</b> rotation at z</td></tr>
+<tr><td><b>LR</b></td><td>right subtree of z's left child</td><td>+2, −1</td><td>left rotation at the child, then right rotation at z</td></tr>
+<tr><td><b>RL</b></td><td>left subtree of z's right child</td><td>−2, +1</td><td>right rotation at the child, then left rotation at z</td></tr>
+</table></div>
+<div class="idea"><b>Shortcut for double rotations</b><p>In LR and RL, the grandchild x ends up as the new root of that subtree, with z and y as its two children. The three keys sort as y &lt; x &lt; z (LR) or z &lt; x &lt; y (RL); the middle key goes on top. x's old subtrees are split between y and z.</p></div>
+
+<h3>Worked insertion: 30, 10, 20, 40, 50, 35, 5</h3>
+<p>This sequence triggers all four rotation types. Each card shows the tree right after one insertion; when a rotation was needed, the card shows the tree before and after it.</p>
+<figure class="fig-scroll" data-static="avl-walk"></figure>
+
+<h2>Deletion</h2>
+<ol>
+  <li>Delete as in a normal BST. A leaf is removed directly. A node with one child is replaced by that child. A node with two children takes the key of its <b>in-order successor</b> (smallest key in the right subtree, or use the predecessor if your teacher does), and then that successor node is deleted instead.</li>
+  <li>Walk up from the parent of the node that was physically removed, updating heights.</li>
+  <li>At every node with |BF| = 2, rotate. Unlike insertion, <b>deletion may need rotations at several ancestors</b>, all the way up to the root.</li>
+</ol>
+<p>Which rotation? Deleting from one side makes the <i>other</i> side too tall. Let y be z's child on the taller side, and look at BF(y):</p>
+<div class="tbl-wrap"><table class="tbl">
+<tr><th>z</th><th>BF(y) (y = taller child)</th><th>Rotation</th><th>Other names</th></tr>
+<tr><td>+2 (left heavy)</td><td>0 or +1</td><td>LL: single right rotation</td><td>R0, R1</td></tr>
+<tr><td>+2</td><td>−1</td><td>LR: double rotation</td><td>R−1</td></tr>
+<tr><td>−2 (right heavy)</td><td>0 or −1</td><td>RR: single left rotation</td><td>L0, L−1</td></tr>
+<tr><td>−2</td><td>+1</td><td>RL: double rotation</td><td>L1</td></tr>
+</table></div>
+<p>The R0/R1/R−1 names (used in some Indian textbooks) say "the deleted node was in the <b>R</b>ight subtree, and the sibling y has BF 0 / 1 / −1".</p>
+
+<div class="bench" id="w-avl">
+  <div class="bench-top"><span class="tag">Try it</span><h3>AVL stepper</h3></div>
+  <p class="bench-note">Numbers or words both work (words are compared alphabetically). The small number beside each node is its balance factor. Use this to check your hand-worked answers.</p>
+  <div class="inputs">
+    <label class="grow">Insert in order<input id="avl-ins" value="40 20 10 25 30 22 50 60 55"></label>
+    <label class="grow">Then delete in order<input id="avl-del" value="10 40"></label>
+    <button class="btn pri run">Build</button>
+  </div>
+  <div class="chips">
+    <button class="chip" data-fill='{"avl-ins":"1 2 3 4 5 6 7","avl-del":""}'>Sorted input (RR chain)</button>
+    <button class="chip" data-fill='{"avl-ins":"50 25 75 10 30 60 80 5 15 27 55 1","avl-del":"80"}'>Deletion with two rotations</button>
+    <button class="chip" data-fill='{"avl-ins":"DEL BOM MAA CCU GOI PNQ AMD HYD","avl-del":"BOM"}'>Words</button>
+  </div>
+  <div class="legend"><span><i class="lg-new" style="background:var(--violet-soft);border-color:var(--violet)"></i>new node</span><span><i class="lg-bad"></i>unbalanced pivot z</span><span><i class="lg-cur"></i>y, x (nodes being rotated)</span><span><i class="lg-done"></i>after rotation</span></div>
+  <div class="player"></div>
+</div>
+
+<section class="quiz">
+<h2>Quick check</h2>
+<div class="mcq" data-answer="1"><p>Insert 10, 30, 20 into an empty AVL tree. Which rotation happens?</p>
+<div class="opts"><button>LL</button><button>RL</button><button>LR</button><button>RR</button></div>
+<p class="why">20 goes right of 10 then left of 30: Right then Left from the pivot 10. Result: 20 at the root, 10 and 30 as children.</p></div>
+<div class="mcq" data-answer="2"><p>How many rotations can a single AVL <i>insertion</i> need?</p>
+<div class="opts"><button>Up to log n</button><button>None ever</button><button>At most one single or one double rotation</button><button>Exactly two</button></div>
+<p class="why">After fixing the lowest unbalanced node, its subtree regains its old height, so nothing above changes. Deletion is different.</p></div>
+<div class="mcq" data-answer="0"><p>During deletion, z has BF = −2 and its right child y has BF = 0. Which rotation?</p>
+<div class="opts"><button>Single left rotation (RR / L0)</button><button>RL double rotation</button><button>Single right rotation</button><button>No rotation needed</button></div>
+<p class="why">y leans neither way, so a single rotation toward the light side fixes z. This case cannot happen during insertion.</p></div>
+</section>
+</section>

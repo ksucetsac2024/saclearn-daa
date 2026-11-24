@@ -1,0 +1,87 @@
+<header class="atlas-nav">
+  <div class="nav-left">
+    <a href="https://saclearn.ksucet.in/" class="nav-brand">
+      <img src="assets/ksucet-dark.png" alt="KSU CET" class="brand-ksu dark-only">
+      <img src="assets/ksucet-light.png" alt="KSU CET" class="brand-ksu light-only">
+      <span class="nav-sep"></span>
+      <img src="assets/logo-dark.png" alt="SAC LEARN" class="brand-logo dark-only">
+      <img src="assets/logo-light.png" alt="SAC LEARN" class="brand-logo light-only">
+      <div class="brand-meta">
+        <span class="brand-name">SAC LEARN</span>
+        <span class="brand-sub">An interactive learning platform</span>
+      </div>
+    </a>
+  </div>
+  <div class="nav-right">
+    <button class="nav-btn nav-search-trigger" id="open-search-btn" title="Search topics (Ctrl+K)">
+      <span class="search-icon">🔍</span>
+      <span class="search-label">Search</span>
+      <kbd>Ctrl K</kbd>
+    </button>
+    <a class="nav-link" href="https://sac.ksucet.in/question-papers?dept=cse&sem=5&subject=Design%20and%20Analysis%20of%20Algorithms" target="_blank" rel="noopener">Papers</a>
+    <a class="nav-link" href="#mock-test">Mock test</a>
+    <a class="nav-link" href="#cheatsheet">Cheat sheet</a>
+    <a class="nav-back-btn" href="https://saclearn.ksucet.in/courses/daa">‹ Back to home</a>
+    <button class="nav-icon-btn" id="theme-toggle-btn" title="Toggle dark/light theme" aria-label="Toggle theme">
+      <span class="theme-icon-sun">☼</span>
+      <span class="theme-icon-moon">☽</span>
+    </button>
+    <button class="nav-icon-btn nav-menu-trigger" id="menu-btn" title="Open menu" aria-label="Open menu">☰</button>
+  </div>
+</header>
+
+<div class="shell">
+<button class="rail-edge-btn" id="rail-edge-btn" title="Toggle sidebar (Ctrl+B)" aria-label="Toggle sidebar"><span class="rail-edge-icon">◀</span></button>
+<nav class="rail" aria-label="Topics">
+  <div class="rail-top">
+    <div class="rail-badges">
+      <span class="rail-badge-dept">CSE</span>
+      <span class="rail-badge-code">PCCST502</span>
+    </div>
+  </div>
+
+  <div class="rail-actions">
+    <a class="rail-action-item" href="https://sac.ksucet.in/question-papers?dept=cse&sem=5&subject=Design%20and%20Analysis%20of%20Algorithms" target="_blank" rel="noopener">
+      <span class="rail-action-ico">📄</span>
+      <span class="rail-action-txt">Previous year papers</span>
+      <span class="rail-ext-ico">↗</span>
+    </a>
+    <a class="rail-action-item" href="#mock-test" data-nav="mock-test">
+      <span class="rail-action-ico">📝</span>
+      <span class="rail-action-txt">Mock test</span>
+    </a>
+    <a class="rail-action-item" href="#cheatsheet" data-nav="cheatsheet">
+      <span class="rail-action-ico">📑</span>
+      <span class="rail-action-txt">Complexity cheat sheet</span>
+    </a>
+    <button class="rail-action-item" id="open-sync-btn" type="button">
+      <span class="rail-action-ico">⇄</span>
+      <span class="rail-action-txt">Sync / Backup</span>
+    </button>
+  </div>
+
+  <div class="rail-divider"></div>
+  <div class="prog">
+    <div class="prog-bar"><i></i></div>
+    <small class="prog-text"></small>
+  </div>
+
+  <div id="rail-list" class="rail-accordion"></div>
+</nav>
+
+<main>
+<div class="page-breadcrumbs" id="page-breadcrumbs"></div>
+<div class="page">
+
+<section class="home" id="home" data-title="Overview">
+  <span class="eyebrow">PCCST502 · Design and Analysis of Algorithms</span>
+  <h1>Learn every algorithm by watching it run</h1>
+  <p class="lede">All 25 topics of the KTU syllabus, one page each. Every page explains the idea from the ground up, then gives you a stepper you can drive with your own input, so you can check your hand-worked MQP answers against it.</p>
+  <div class="how">
+    <div><b>Read, then run</b><p>Each topic opens with the idea and the pseudocode. The blue "Try it" panels run the algorithm one step at a time with an explanation under each step.</p></div>
+    <div><b>Use your own numbers</b><p>Every stepper takes your input. Solve a question on paper first, then type it in and step through to find exactly where you went wrong.</p></div>
+    <div><b>Check, then tick</b><p>Each topic ends with a short quiz. Mark the topic done; your ticks are kept in this browser.</p></div>
+  </div>
+  <div id="home-mods" class="mods"></div>
+  <div class="idea" style="margin-top:28px;max-width:none"><b>Exam pattern</b><p>Part A: 8 questions × 3 marks, two from each module, all compulsory. Part B: one 9-mark question per module, chosen from two, with up to three sub-parts. Total 60 marks in 2½ hours.</p></div>
+</section>
