@@ -26,18 +26,23 @@
       <span class="theme-icon-sun">☼</span>
       <span class="theme-icon-moon">☽</span>
     </button>
-    <button class="nav-icon-btn nav-menu-trigger" id="menu-btn" title="Open menu" aria-label="Open menu">☰</button>
+    <button class="nav-icon-btn nav-menu-trigger" id="menu-btn" title="Open menu" aria-label="Open menu" aria-expanded="false" aria-controls="rail-nav">☰</button>
   </div>
 </header>
 
 <div class="shell">
 <button class="rail-edge-btn" id="rail-edge-btn" title="Toggle sidebar (Ctrl+B)" aria-label="Toggle sidebar"><span class="rail-edge-icon">◀</span></button>
-<nav class="rail" aria-label="Topics">
+<div class="rail-backdrop" id="rail-backdrop" aria-hidden="true"></div>
+<nav class="rail" id="rail-nav" aria-label="Topics">
   <div class="rail-top">
     <a class="rail-brand-btn" href="#home" title="DAA Home">DAA</a>
   </div>
 
   <div class="rail-actions">
+    <a class="rail-action-item rail-home-mobile" href="https://saclearn.ksucet.in/">
+      <span class="rail-action-ico">‹</span>
+      <span class="rail-action-txt">Back to SAC LEARN</span>
+    </a>
     <a class="rail-action-item" href="https://sac.ksucet.in/question-papers?dept=cse&sem=5&subject=Design%20and%20Analysis%20of%20Algorithms" target="_blank" rel="noopener">
       <span class="rail-action-ico">📄</span>
       <span class="rail-action-txt">Previous year papers</span>
