@@ -280,7 +280,7 @@ bench("w-growth", {
     const X = n => L + (n - 1) / (N - 1) * (W - L - R), Y = v => T + (1 - Math.max(v, 0) / top) * (H - T - B);
     let s = `<svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Growth of common functions up to n = ${N}, log scale">`;
     const step = top <= 12 ? 1 : top <= 40 ? 5 : top <= 120 ? 10 : 20;
-    for (let v = 0; v <= top; v += step) s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" class="line-s" stroke-width=".6" opacity=".6"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" class="sub">10${sup(v)}</text>`;
+    for (let v = 0; v <= top; v += step) s += `<line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" class="line-s" stroke-width=".6" opacity=".6"/><text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end" class="sub">10<tspan dy="-4.5" font-size="8.5">${v}</tspan></text>`;
     for (let n = 1; n <= N; n += Math.max(1, Math.round(N / 10))) s += `<text x="${X(n)}" y="${H - B + 16}" text-anchor="middle" class="sub">${n}</text>`;
     s += `<text x="${W - R}" y="${H - 4}" text-anchor="end" class="faint">n</text>`;
     const ends = [];
@@ -293,7 +293,7 @@ bench("w-growth", {
     for (let i = 1; i < ends.length; i++) if (ends[i].y - ends[i - 1].y < 13) ends[i].y = ends[i - 1].y + 13;
     ends.forEach(e => s += `<text x="${W - R + 6}" y="${e.y + 4}" style="fill:var(${e.g.col});font-weight:700;font-size:12.5px">${e.g.lab}</text>`);
     s += `</svg>`;
-    const vals = GROWTH.map(g => { const v = g.f(N); return v < 15 ? Math.round(10 ** v).toLocaleString() : "≈ 10" + sup(Math.floor(v)); });
+    const vals = GROWTH.map(g => { const v = g.f(N); return v < 15 ? Math.round(10 ** v).toLocaleString() : `≈ 10<sup>${Math.floor(v)}</sup>`; });
     $(".out", el).innerHTML = s + table(GROWTH.map(g => g.lab), [vals.map(v => ({ v, raw: true }))], { cls: "num" }) + `<p class="faint" style="font-size:13px;margin:4px 0 0">Values at n = ${N}.</p>`;
   }
 });
@@ -319,7 +319,7 @@ function sci(lnv) {
   const l10 = lnv / Math.LN10;
   if (l10 > -4 && l10 < 7) { const v = Math.exp(lnv); return v >= 100 ? Math.round(v).toLocaleString() : v.toPrecision(4); }
   const e = Math.floor(l10), m = 10 ** (l10 - e);
-  return `${m.toFixed(2)} × 10${sup(String(e).replace("-", "⁻"))}`.replace("10⁻", "10⁻");
+  return `${m.toFixed(2)} × 10<sup>${e < 0 ? "−" + (-e) : e}</sup>`;
 }
 bench("w-ratio", {
   init(el) {
@@ -330,7 +330,7 @@ bench("w-ratio", {
   build(el) {
     const f = $("#ra-f", el).value, g = $("#ra-g", el).value;
     const ns = [10, 100, 1e3, 1e4, 1e6, 1e9];
-    const rows = ns.map(n => [{ v: n >= 1e4 ? "10" + sup(Math.round(Math.log10(n))) : n, raw: true }, { v: sci(lnF(f, n) - lnF(g, n)), raw: true }]);
+    const rows = ns.map(n => [{ v: n >= 1e4 ? `10<sup>${Math.round(Math.log10(n))}</sup>` : n, raw: true }, { v: sci(lnF(f, n) - lnF(g, n)), raw: true }]);
     const a = FUNCS[f], b = FUNCS[g];
     let sign = 0;
     for (let i = 0; i < 5; i++) { const d = a[i] - b[i]; if (Math.abs(d) > 1e-12) { sign = Math.sign(d); break; } }
@@ -375,7 +375,7 @@ bench("w-loops", {
     let best = 0, bestErr = Infinity;
     CANDS.forEach(([_, g], k) => { const r1 = cs[3] / g(Ns[3]), r2 = cs[4] / g(Ns[4]); const err = Math.abs(Math.log(r2 / r1)); if (err < bestErr) { bestErr = err; best = k; } });
     const head = ["n", "count", ...CANDS.map(c => "count / " + c[0])];
-    const rows = Ns.map((N, r) => [{ v: "2" + sup(Math.log2(N)), raw: true }, cs[r].toLocaleString(), ...CANDS.map(([_, g], k) => ({ v: r2(cs[r] / g(N)) < 0.01 ? "≈0" : r2(cs[r] / g(N)).toLocaleString(), raw: true, c: k === best ? "ok" : "" }))]);
+    const rows = Ns.map((N, r) => [{ v: `2<sup>${Math.log2(N)}</sup>`, raw: true }, cs[r].toLocaleString(), ...CANDS.map(([_, g], k) => ({ v: r2(cs[r] / g(N)) < 0.01 ? "≈0" : r2(cs[r] / g(N)).toLocaleString(), raw: true, c: k === best ? "ok" : "" }))]);
     $(".out", el).innerHTML = `<div class="row"><pre class="code" style="margin:0">${esc(code)}</pre><div class="result" style="margin:0;align-self:center">Fits <b>Θ(${CANDS[best][0]})</b>: the green column settles to a constant.</div></div>
       <div style="margin-top:14px;overflow-x:auto">${s}</div>${table(head, rows)}`;
   }
@@ -434,7 +434,7 @@ bench("w-master", {
       const h = Math.max(1.5, c / mx * (Hh - 50));
       s += `<rect x="${40 + i * bw}" y="${Hh - 28 - h}" width="${bw - 8}" height="${h}" rx="2" class="${i === Lv ? "amb-f amb-s" : "acc-f"}" opacity="${i === Lv ? 1 : .8}"/><text x="${40 + i * bw + (bw - 8) / 2}" y="${Hh - 12}" text-anchor="middle" class="sub">${i === Lv ? "leaves" : i}</text>`;
     });
-    s += `<text x="40" y="14" class="faint">total work per level (level 0 = root), n = ${b}¹⁰</text></svg>`;
+    s += `<text x="40" y="14" class="faint">total work per level (level 0 = root), n = ${b}<tspan dy="-4" font-size="8.5">10</tspan></text></svg>`;
     $(".out", el).innerHTML = `<div class="big-math" style="white-space:normal">T(n) = ${a}·T(n/${b}) + ${fn || "1"}     ·     n^(log_${b} ${a}) = ${nx}</div>
       <div class="result"><b>${cs}</b>: T(n) = <b>${ans}</b><br><span style="font-size:15px">${why}</span></div><div style="margin-top:14px;overflow-x:auto">${s}</div>`;
   }
