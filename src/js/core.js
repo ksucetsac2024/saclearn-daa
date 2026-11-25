@@ -59,7 +59,7 @@ function parseNums(s) {
 function parseList(s) { return String(s).split(/[\s,;]+/).filter(x => x !== ""); }
 
 /* ================= step player ================= */
-function makePlayer(host, render) {
+function makePlayer(host, render, onBeforeAction) {
   host.classList.add("player");
   host.innerHTML = `<div class="stage"></div><div class="cap" aria-live="polite"></div>
   <div class="ctrl">
@@ -94,6 +94,7 @@ function makePlayer(host, render) {
   }
   $(".ctrl", host).addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
+    if (onBeforeAction) onBeforeAction();
     const a = b.dataset.a;
     if (a === "challenge") {
       challenge = !challenge;
@@ -139,20 +140,26 @@ function initWidget(el) {
   }
   let errBox = $(".err", el);
   if (!errBox) { errBox = document.createElement("div"); errBox.className = "err"; const pl = $(".player, .out", el); el.insertBefore(errBox, pl || null); }
-  const player = spec.render ? makePlayer($(".player", el), spec.render) : null;
+  let tmr = null, dirty = false;
   const run = () => {
+    clearTimeout(tmr); tmr = null; dirty = false;
     errBox.textContent = "";
     try {
       const res = spec.build(el);
       if (player) { if (!res || !res.length) throw new Error("Nothing to show for this input."); player.load(res); }
     } catch (e) { errBox.textContent = e.message; console.error(e); }
   };
-  $$(".run", el).forEach(b => b.addEventListener("click", run));
-  const live = !$(".run", el);
-  let tmr = null;
+  const flush = () => { if (dirty) run(); };
+  const player = spec.render ? makePlayer($(".player", el), spec.render, flush) : null;
   $$("input, select, textarea", el).forEach(inp => {
     inp.addEventListener("change", run);
-    if (inp.type === "range" || (live && inp.tagName !== "SELECT")) inp.addEventListener("input", () => { clearTimeout(tmr); tmr = setTimeout(run, inp.type === "range" ? 0 : 350); });
+    if (inp.type === "range" || inp.tagName !== "SELECT") {
+      inp.addEventListener("input", () => {
+        dirty = true;
+        clearTimeout(tmr);
+        tmr = setTimeout(run, inp.type === "range" ? 0 : 350);
+      });
+    }
     if (inp.tagName === "INPUT" && inp.type !== "checkbox" && inp.type !== "range") inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); run(); } });
   });
   $$(".chip[data-fill]", el).forEach(c => c.addEventListener("click", () => {

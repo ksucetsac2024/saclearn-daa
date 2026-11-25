@@ -79,7 +79,6 @@ f f</textarea></label>
       <label class="chk"><input type="checkbox" id="ds-rank" checked> Union by rank</label>
       <label class="chk"><input type="checkbox" id="ds-pc" checked> Path compression</label>
       <label>On equal ranks<select id="ds-tie"><option value="second">second root goes under first</option><option value="first">first root goes under second (CLRS)</option></select></label>
-      <button class="btn pri run">Run</button>
     </div>
   </div>
   <div class="chips">
@@ -129,7 +128,6 @@ f f</textarea></label>
     <label>Vertices<input id="cc-v" value="p q r s t u v w x"></label>
     <label class="grow">Edges (in processing order)<input id="cc-e" value="p q, s t, r p, v w, q r, t u, w x, u s"></label>
     <label>Queries<input id="cc-q" value="p r, q u, t s"></label>
-    <button class="btn pri run">Run</button>
   </div>
   <div class="player"></div>
 </div>
@@ -172,7 +170,6 @@ f f</textarea></label>
   <div class="inputs">
     <label class="grow">Edges, one per line or comma separated<input id="rp-e" value="a b, a c, b d, c d, d e, e c"></label>
     <label class="chk"><input type="checkbox" id="rp-dir" checked> Directed</label>
-    <button class="btn pri run">Build</button>
   </div>
   <div class="out"></div>
 </div>
@@ -240,7 +237,6 @@ u y</textarea></label>
       <label>Algorithm<select id="tv-alg"><option value="bfs">BFS</option><option value="dfs">DFS</option></select></label>
       <label>Start<input id="tv-s" value="s" style="width:80px"></label>
       <label class="chk"><input type="checkbox" id="tv-dir"> Directed</label>
-      <button class="btn pri run">Run</button>
     </div>
   </div>
   <div class="chips">
@@ -322,7 +318,6 @@ dress keys
 keys leave</textarea></label>
     <div style="display:flex;flex-direction:column;gap:8px">
       <label>Method<select id="tp-m"><option value="dfs">DFS finishing times</option><option value="kahn">Source removal (Kahn)</option></select></label>
-      <button class="btn pri run">Run</button>
     </div>
   </div>
   <div class="chips">
@@ -377,7 +372,7 @@ f d
 g f
 g h
 h g</textarea></label>
-    <div style="display:flex;flex-direction:column;gap:8px"><label>Start pass 1 at<input id="sc-s" value="a" style="width:80px"></label><button class="btn pri run">Run</button></div>
+    <label>Start pass 1 at<input id="sc-s" value="a" style="width:80px"></label>
   </div>
   <div class="player"></div>
 </div>
@@ -444,7 +439,6 @@ T(n) = T(n₁) + T(n₂) + … + T(nₖ) + f(n)      otherwise</div>
   <p class="bench-note">The top half splits, the bottom half merges back. Step through to watch each level appear.</p>
   <div class="inputs">
     <label class="grow">Array<input id="ms2-a" value="38 16 72 5 49 23 61 9"></label>
-    <button class="btn pri run">Run</button>
   </div>
   <div class="player"></div>
 </div>
@@ -454,7 +448,6 @@ T(n) = T(n₁) + T(n₂) + … + T(nₖ) + f(n)      otherwise</div>
   <div class="inputs">
     <label class="grow">Left (sorted)<input id="mg-a" value="4 11 19 30"></label>
     <label class="grow">Right (sorted)<input id="mg-b" value="7 8 25 41 50"></label>
-    <button class="btn pri run">Run</button>
   </div>
   <div class="player"></div>
 </div>
@@ -533,7 +526,6 @@ T(n) = Θ(n^(log₂7)) ≈ Θ(n^2.81)</div>
   <div class="inputs">
     <label>A (a11 a12 a21 a22)<input id="st-a" value="2 5 3 4"></label>
     <label>B (b11 b12 b21 b22)<input id="st-b" value="1 6 7 2"></label>
-    <button class="btn pri run">Compute</button>
   </div>
   <div class="out"></div>
 </div>
