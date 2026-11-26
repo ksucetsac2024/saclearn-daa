@@ -727,11 +727,16 @@ function wireCheatSheet() {
 
   const filter = () => {
     const q = (inp?.value || "").toLowerCase().trim();
+    const matches = el => {
+      const matchMod = activeMod === "all" || el.dataset.mod === activeMod.slice(1);
+      const matchText = !q || el.textContent.toLowerCase().includes(q);
+      return matchMod && matchText;
+    };
     $$("tbody tr", table).forEach(tr => {
-      const matchMod = activeMod === "all" || tr.dataset.mod === activeMod.slice(1);
-      const text = tr.textContent.toLowerCase();
-      const matchText = !q || text.includes(q);
-      tr.style.display = matchMod && matchText ? "" : "none";
+      tr.style.display = matches(tr) ? "" : "none";
+    });
+    $$(".cs-filter-card").forEach(card => {
+      card.style.display = matches(card) ? "" : "none";
     });
   };
 

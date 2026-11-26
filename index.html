@@ -3181,6 +3181,247 @@ a b ~c</textarea></label>
   <b>Cook's Reduction Chain (Syllabus Core)</b>
   <p><span class="math">Circuit-SAT ≤<sub>p</sub> SAT ≤<sub>p</sub> 3-SAT ≤<sub>p</sub> Clique ≤<sub>p</sub> Vertex Cover ≤<sub>p</sub> Hamiltonian Cycle ≤<sub>p</sub> TSP</span></p>
 </div>
+
+<h2>5. Asymptotic Shortcuts &amp; Growth Ladder</h2>
+<div class="formula">
+  <b>Standard Growth Order (Slowest → Fastest)</b>
+  <p><span class="math">1 &lt; log log n &lt; log n &lt; √n &lt; n &lt; n log n &lt; n² &lt; n³ &lt; 2<sup>n</sup> &lt; n! &lt; n<sup>n</sup></span></p>
+</div>
+<div class="cols">
+  <div class="card">
+    <h4>Limit Test (Fastest Way to Compare f &amp; g)</h4>
+    <p>Compute <span class="math">L = lim<sub>n→∞</sub> f(n) / g(n)</span> (apply L'Hôpital if <span class="math">∞/∞</span>):</p>
+    <ul>
+      <li><span class="math">L = 0</span> ⇒ <span class="math">f(n) = o(g(n))</span> &amp; <span class="math">O(g(n))</span></li>
+      <li><span class="math">0 &lt; L &lt; ∞</span> ⇒ <span class="math">f(n) = Θ(g(n))</span></li>
+      <li><span class="math">L = ∞</span> ⇒ <span class="math">f(n) = ω(g(n))</span> &amp; <span class="math">Ω(g(n))</span></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Loop Pattern → Complexity</h4>
+    <ul>
+      <li><span class="math">i += c</span> (linear step) ⇒ <span class="math">Θ(n)</span></li>
+      <li><span class="math">i *= c</span> or <span class="math">i /= c</span> ⇒ <span class="math">Θ(log<sub>c</sub> n)</span></li>
+      <li><span class="math">i = i²</span> or <span class="math">i = √i</span> ⇒ <span class="math">Θ(log log n)</span></li>
+      <li>Nested <span class="math">j = 1..i</span> (triangular) ⇒ <span class="math">Θ(n²)</span></li>
+    </ul>
+  </div>
+  <div class="card">
+    <h4>Common Non-Master Recurrences</h4>
+    <ul>
+      <li><span class="math">T(n) = T(n−1) + 1</span> ⇒ <span class="math">Θ(n)</span></li>
+      <li><span class="math">T(n) = T(n−1) + n</span> ⇒ <span class="math">Θ(n²)</span></li>
+      <li><span class="math">T(n) = 2T(n−1) + 1</span> ⇒ <span class="math">Θ(2<sup>n</sup>)</span></li>
+      <li><span class="math">T(n) = T(√n) + 1</span> ⇒ <span class="math">Θ(log log n)</span></li>
+    </ul>
+  </div>
+</div>
+
+<h2>6. Simple Step-by-Step Playbooks (How to Solve Exam Questions)</h2>
+<p>Use the module pills or search box at the top to filter these step-by-step recipes.</p>
+<div class="cols">
+  <div class="card cs-filter-card" data-mod="1">
+    <h4>AVL Tree Insert &amp; Rotations <span class="tag">M1</span></h4>
+    <ol>
+      <li>Insert key as in a normal BST.</li>
+      <li>Walk back up to root, updating <span class="math">BF = h(L) − h(R)</span>.</li>
+      <li>Stop at the <b>first</b> unbalanced node (<span class="math">|BF| &gt; 1</span>).</li>
+      <li>Check the two steps toward the inserted key: <b>LL</b> → Right rotate; <b>RR</b> → Left rotate; <b>LR</b> → Left(child) then Right(node); <b>RL</b> → Right(child) then Left(node).</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="1">
+    <h4>Solving Recurrences (Iteration) <span class="tag">M1</span></h4>
+    <ol>
+      <li>Expand <span class="math">T(n)</span> 3 times to expose the <span class="math">k</span>-th step pattern.</li>
+      <li>Set base condition: <span class="math">n / b<sup>k</sup> = 1</span> (<span class="math">k = log<sub>b</sub> n</span>) or <span class="math">n − k = 1</span> (<span class="math">k = n − 1</span>).</li>
+      <li>Substitute <span class="math">k</span> and sum the resulting arithmetic or geometric series.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="2">
+    <h4>BFS &amp; DFS Graph Traversals <span class="tag">M2</span></h4>
+    <ol>
+      <li><b>BFS (Queue):</b> Enqueue start &amp; mark visited <em>immediately</em>; pop, visit unvisited neighbors in alphabetical/numerical order. Gives shortest unweighted path.</li>
+      <li><b>DFS (Stack / Recursion):</b> Record <span class="math">d[u]</span> on entry, <span class="math">f[u]</span> when all neighbors finish.</li>
+      <li><b>Edge types (DFS):</b> Back edge (to ancestor) = <b>cycle</b>; Forward (to descendant); Cross (to finished subtree).</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="2">
+    <h4>Topological Sort (Kahn's &amp; DFS) <span class="tag">M2</span></h4>
+    <ol>
+      <li><b>Kahn's (BFS):</b> Compute <span class="math">in-degree</span> of all vertices → enqueue all with <span class="math">0</span> → pop <span class="math">u</span>, append to order, decrement neighbors' in-degree (enqueue if <span class="math">0</span>).</li>
+      <li><b>DFS Method:</b> Run DFS and list vertices in <b>decreasing order of finish time <span class="math">f[u]</span></b>.</li>
+      <li>Only valid for a <b>DAG</b> (if Kahn's outputs &lt; <span class="math">V</span> nodes, a cycle exists).</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="2">
+    <h4>Kosaraju's SCC (3 Steps) <span class="tag">M2</span></h4>
+    <ol>
+      <li>Run DFS on <span class="math">G</span>; push each vertex onto a stack when it <b>finishes</b>.</li>
+      <li>Reverse all edge directions to build transpose graph <span class="math">G<sup>T</sup></span>.</li>
+      <li>Pop vertices from stack and run DFS on <span class="math">G<sup>T</sup></span> — each DFS tree is one Strongly Connected Component.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="2">
+    <h4>Union-Find (Rank + Path Compression) <span class="tag">M2</span></h4>
+    <ol>
+      <li><b>Find(x):</b> Follow parent pointers to root, then point every node on the path directly to the root.</li>
+      <li><b>Union(x, y):</b> Find roots <span class="math">r<sub>x</sub>, r<sub>y</sub></span>. Attach smaller-rank root under larger-rank root.</li>
+      <li>Increment rank by 1 <b>only</b> when both roots have equal rank.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="2">
+    <h4>Strassen's Matrix Multiplication <span class="tag">M2</span></h4>
+    <ol>
+      <li>Partition <span class="math">A, B</span> into four <span class="math">n/2 × n/2</span> submatrices.</li>
+      <li>Compute <b>7</b> products <span class="math">P₁…P₇</span> (instead of 8) using additions/subtractions.</li>
+      <li>Combine <span class="math">P₁…P₇</span> to form <span class="math">C₁₁, C₁₂, C₂₁, C₂₂</span> ⇒ <span class="math">T(n) = 7T(n/2) + Θ(n²) = Θ(n<sup>2.807</sup>)</span>.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="3">
+    <h4>Fractional Knapsack (Greedy) <span class="tag">M3</span></h4>
+    <ol>
+      <li>Compute profit-to-weight ratio <span class="math">p<sub>i</sub> / w<sub>i</sub></span> for every item.</li>
+      <li>Sort items in <b>descending</b> order of <span class="math">p<sub>i</sub> / w<sub>i</sub></span>.</li>
+      <li>Greedily take whole items while <span class="math">w<sub>i</sub> ≤ W<sub>rem</sub></span>; for the first item that doesn't fit, take fraction <span class="math">W<sub>rem</sub> / w<sub>i</sub></span>.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="3">
+    <h4>Kruskal's vs Prim's MST <span class="tag">M3</span></h4>
+    <ol>
+      <li><b>Kruskal's:</b> Sort all edges ascending → pick cheapest edge that doesn't create a cycle (Union-Find) until <span class="math">V − 1</span> edges. Best for <b>sparse</b> graphs.</li>
+      <li><b>Prim's:</b> Start at given root → maintain min-edge cost to tree for each outside vertex → repeatedly add cheapest crossing edge and update neighbors. Best for <b>dense</b> graphs.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="3">
+    <h4>Dijkstra's Shortest Path <span class="tag">M3</span></h4>
+    <ol>
+      <li>Set <span class="math">dist[src] = 0</span>, all others <span class="math">∞</span>.</li>
+      <li>Pick unvisited vertex <span class="math">u</span> with minimum <span class="math">dist[u]</span> and lock it.</li>
+      <li>Relax every neighbor <span class="math">v</span>: if <span class="math">dist[u] + w(u,v) &lt; dist[v]</span>, update <span class="math">dist[v]</span>.</li>
+      <li><b>Trap:</b> Never use on graphs with negative edge weights.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="3">
+    <h4>0/1 Knapsack (DP Table + Trace) <span class="tag">M3</span></h4>
+    <ol>
+      <li>Build <span class="math">(n+1) × (W+1)</span> table; row 0 and col 0 = <span class="math">0</span>.</li>
+      <li>For each cell <span class="math">(i, w)</span>: if <span class="math">w &lt; wt[i]</span> copy <span class="math">K[i−1, w]</span>; else take <span class="math">max(K[i−1, w], val[i] + K[i−1, w − wt[i]])</span>.</li>
+      <li><b>Trace items:</b> Start at <span class="math">(n, W)</span>. If <span class="math">K[i, w] ≠ K[i−1, w]</span>, item <span class="math">i</span> is chosen and move to <span class="math">(i−1, w − wt[i])</span>; else move to <span class="math">(i−1, w)</span>.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="3">
+    <h4>Matrix Chain Multiplication <span class="tag">M3</span></h4>
+    <ol>
+      <li>Extract dimensions <span class="math">p₀, p₁, …, pₙ</span> where matrix <span class="math">Aᵢ</span> is <span class="math">p<sub>i−1</sub> × p<sub>i</sub></span>.</li>
+      <li>Set main diagonal <span class="math">m[i, i] = 0</span>.</li>
+      <li>Fill upper triangle by chain length <span class="math">L = 2..n</span>: test every split <span class="math">i ≤ k &lt; j</span>, store min cost in <span class="math">m[i, j]</span> and best <span class="math">k</span> in <span class="math">s[i, j]</span>.</li>
+      <li>Parenthesize recursively at <span class="math">s[1, n]</span>.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="3">
+    <h4>Floyd–Warshall All-Pairs <span class="tag">M3</span></h4>
+    <ol>
+      <li>Initialize <span class="math">D⁰</span> with edge weights (<span class="math">0</span> on diagonal, <span class="math">∞</span> if no edge).</li>
+      <li>For each intermediate vertex <span class="math">k = 1..V</span>: copy row <span class="math">k</span>, col <span class="math">k</span>, and diagonal unchanged.</li>
+      <li>Update every other cell: <span class="math">D[i,j] = min(D[i,j], D[i,k] + D[k,j])</span>.</li>
+      <li>Negative diagonal entry <span class="math">D[i,i] &lt; 0</span> ⇒ negative cycle.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="3">
+    <h4>N-Queens (Backtracking) <span class="tag">M3</span></h4>
+    <ol>
+      <li>Place 1 queen per row <span class="math">r = 1..n</span>.</li>
+      <li>Column <span class="math">c</span> is safe iff no previous queen shares column <span class="math">c</span>, main diagonal (<span class="math">r − c</span>), or anti-diagonal (<span class="math">r + c</span>).</li>
+      <li>If no column is safe in row <span class="math">r</span>, backtrack to row <span class="math">r − 1</span> and try the next column.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="4">
+    <h4>TSP via LC Branch &amp; Bound <span class="tag">M4</span></h4>
+    <ol>
+      <li><b>Reduce root matrix:</b> Subtract each row min, then each col min; sum of all subtracted values = root lower bound <span class="math">C</span>.</li>
+      <li><b>Branch <span class="math">i → j</span>:</b> Set row <span class="math">i</span>, col <span class="math">j</span>, and <span class="math">M[j, start]</span> to <span class="math">∞</span>; re-reduce matrix for <span class="math">Δ</span>.</li>
+      <li><b>Child cost:</b> <span class="math">C(child) = C(parent) + M[i,j] + Δ</span>.</li>
+      <li>Always expand the live node with the <b>lowest cost</b>; prune any node with <span class="math">C ≥ best_tour</span>.</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="4">
+    <h4>NP-Completeness Proof Template <span class="tag">M4</span></h4>
+    <ol>
+      <li><b>Step 1 (<span class="math">X ∈ NP</span>):</b> State the certificate (witness) and show it can be verified in polynomial time.</li>
+      <li><b>Step 2 (<span class="math">X</span> is NP-Hard):</b> Pick a known NPC problem <span class="math">Y</span> (e.g. <span class="math">3-SAT</span> or <span class="math">Clique</span>).</li>
+      <li><b>Step 3 (Reduction <span class="math">Y ≤<sub>p</sub> X</span>):</b> Give a poly-time construction <span class="math">f(y)</span> and prove <span class="math">y ∈ Y ⇔ f(y) ∈ X</span> (both directions!).</li>
+    </ol>
+  </div>
+  <div class="card cs-filter-card" data-mod="4">
+    <h4>Bin Packing Approximations <span class="tag">M4</span></h4>
+    <ol>
+      <li><b>First Fit (FF):</b> Put item in the first bin with enough room (<span class="math">≤ 1.7·OPT</span>).</li>
+      <li><b>Best Fit (BF):</b> Put item in the bin that leaves the <em>least</em> leftover space (<span class="math">≤ 1.7·OPT</span>).</li>
+      <li><b>First Fit Decreasing (FFD):</b> Sort items descending first, then run FF (<span class="math">≤ (11/9)·OPT + 6/9</span>).</li>
+    </ol>
+  </div>
+</div>
+
+<h2>7. Paradigm Comparison &amp; Exam Traps</h2>
+<div class="tbl-wrap">
+  <table class="tbl">
+    <thead>
+      <tr>
+        <th>Paradigm</th>
+        <th>Subproblems</th>
+        <th>Choices Explored</th>
+        <th>Optimal?</th>
+        <th>Classic Exam Example</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>Divide &amp; Conquer</b></td>
+        <td>Independent</td>
+        <td>Split, solve, combine</td>
+        <td>Yes (exact)</td>
+        <td>Merge Sort, Strassen's</td>
+      </tr>
+      <tr>
+        <td><b>Greedy</b></td>
+        <td>One local choice</td>
+        <td>Single best-looking path</td>
+        <td>Only with greedy-choice + optimal substructure</td>
+        <td>Fractional Knapsack, Kruskal, Prim, Dijkstra</td>
+      </tr>
+      <tr>
+        <td><b>Dynamic Programming</b></td>
+        <td>Overlapping</td>
+        <td>All choices (memoized bottom-up)</td>
+        <td>Yes (global)</td>
+        <td>0/1 Knapsack, MCM, Floyd–Warshall</td>
+      </tr>
+      <tr>
+        <td><b>Backtracking</b></td>
+        <td>State-space tree</td>
+        <td>DFS + prune invalid branches</td>
+        <td>Finds all / first valid</td>
+        <td>N-Queens</td>
+      </tr>
+      <tr>
+        <td><b>Branch &amp; Bound</b></td>
+        <td>State-space tree</td>
+        <td>Best-first (LC) + prune by bound</td>
+        <td>Yes (global min/max)</td>
+        <td>TSP (Reduced Cost Matrix)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+<div class="trap">
+  <b>Top 4 KTU PCCST502 Exam Traps</b>
+  <ul>
+    <li><b>Direction of Reduction:</b> To prove <span class="math">X</span> is NP-Hard, reduce a <em>known</em> NPC problem <span class="math">Y</span> <b>to</b> <span class="math">X</span> (<span class="math">Y ≤<sub>p</sub> X</span>), never <span class="math">X ≤<sub>p</sub> Y</span>.</li>
+    <li><b>0/1 vs Fractional Knapsack:</b> Greedy by <span class="math">p/w</span> fails for 0/1 Knapsack — always use DP for 0/1.</li>
+    <li><b>Dijkstra vs Floyd–Warshall:</b> Dijkstra fails on negative edges; Floyd–Warshall handles negative edges as long as there are no negative cycles.</li>
+    <li><b>Randomized Quicksort:</b> Expected time is <span class="math">Θ(n log n)</span> regardless of input order, but worst-case is still <span class="math">Θ(n²)</span> (Las Vegas: always correct, runtime varies).</li>
+  </ul>
+</div>
 </section>
 <section class="topic" id="mock-test" data-mod="0" data-title="DAA Mock Test (KTU S5)">
 <header>
@@ -4232,11 +4473,16 @@ function wireCheatSheet() {
 
   const filter = () => {
     const q = (inp?.value || "").toLowerCase().trim();
+    const matches = el => {
+      const matchMod = activeMod === "all" || el.dataset.mod === activeMod.slice(1);
+      const matchText = !q || el.textContent.toLowerCase().includes(q);
+      return matchMod && matchText;
+    };
     $$("tbody tr", table).forEach(tr => {
-      const matchMod = activeMod === "all" || tr.dataset.mod === activeMod.slice(1);
-      const text = tr.textContent.toLowerCase();
-      const matchText = !q || text.includes(q);
-      tr.style.display = matchMod && matchText ? "" : "none";
+      tr.style.display = matches(tr) ? "" : "none";
+    });
+    $$(".cs-filter-card").forEach(card => {
+      card.style.display = matches(card) ? "" : "none";
     });
   };
 
